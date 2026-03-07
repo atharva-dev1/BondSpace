@@ -25,13 +25,20 @@ const storeRoutes = require('./routes/store');
 // Middleware
 const authMiddleware = require('./middleware/auth');
 
+const logger = require('./lib/logger');
+
 const app = express();
+
+const isProduction = process.env.NODE_ENV === 'production';
 
 // Security & Utility
 app.use(helmet());
-app.use(cors({ origin: process.env.CLIENT_URL || 'http://localhost:3000', credentials: true }));
+app.use(cors({
+    origin: isProduction ? process.env.CLIENT_URL : [process.env.CLIENT_URL, 'http://localhost:3000'],
+    credentials: true
+}));
 app.use(express.json({ limit: '50mb' }));
-app.use(morgan('dev'));
+app.use(morgan(isProduction ? 'combined' : 'dev'));
 
 // Rate limiting
 const limiter = rateLimit({
@@ -148,8 +155,17 @@ app.get('/health', (req, res) => res.json({ status: 'ok', time: new Date() }));
 
 // Error handling
 app.use((err, req, res, next) => {
-    console.error(err.stack);
-    res.status(500).json({ error: 'Internal Server Error' });
+    logger.error(`${req.method} ${req.url} - ${err.message}`, err.stack);
+
+    const response = {
+        error: isProduction ? 'Internal Server Error' : err.message
+    };
+
+    if (!isProduction) {
+        response.stack = err.stack;
+    }
+
+    res.status(err.status || 500).json(response);
 });
 
 module.exports = app;
