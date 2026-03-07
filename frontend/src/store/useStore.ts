@@ -81,18 +81,25 @@ export const useStore = create<StoreState>((set, get) => ({
     initializeSocket: () => {
         const { token, socket } = get();
         if (!token) return;
-        if (socket) socket.disconnect();
+
+        // Don't re-initialize if active and connected
+        if (socket?.connected) return;
 
         const newSocket = io(SOCKET_URL, {
             auth: { token },
+            transports: ['websocket', 'polling'], // Prefer websockets
+            reconnection: true,
+            reconnectionAttempts: 10,
+            reconnectionDelay: 1000,
         });
 
         newSocket.on('connect', () => {
             console.log('Socket connected 🔌');
         });
 
-        newSocket.on('disconnect', () => {
-            console.log('Socket disconnected 🔴');
+        newSocket.on('disconnect', (reason) => {
+            console.log('Socket disconnected 🔴 Reason:', reason);
+            // If disconnected due to server-side issues, it will auto-reconnect
         });
 
         set({ socket: newSocket });

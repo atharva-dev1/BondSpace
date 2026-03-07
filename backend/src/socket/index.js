@@ -25,6 +25,7 @@ const initializeSocket = (server) => {
             methods: ['GET', 'POST'],
             credentials: true,
         },
+        transports: ['websocket', 'polling'], // Prefer websockets for stability
         maxHttpBufferSize: 10e6, // 10MB — needed for base64 voice note data URLs
     });
 
