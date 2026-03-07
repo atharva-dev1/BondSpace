@@ -19,7 +19,7 @@ const GENDERS = [
 type Step = 'avatar' | 'details' | 'bio';
 
 export default function ProfileSetup({ onDone }: { onDone: () => void }) {
-    const { token, user, login } = useStore();
+    const { token, user, login, updateUser } = useStore();
     const [step, setStep] = useState<Step>('avatar');
     const [form, setForm] = useState({
         avatar: '💖',
@@ -140,8 +140,8 @@ export default function ProfileSetup({ onDone }: { onDone: () => void }) {
                                             key={g.value}
                                             onClick={() => {
                                                 setForm(f => ({ ...f, gender: g.value }));
-                                                // Proactively update store for immediate theme change
-                                                if (user) login(token || '', { ...user, gender: g.value });
+                                                // Proactively update store for immediate theme change without resetting state
+                                                updateUser({ gender: g.value });
                                             }}
                                             className={`flex items-center gap-3 px-4 py-4 rounded-2xl border transition-all text-left ${form.gender === g.value
                                                 ? 'border-rose-500 bg-rose-500/10 text-white'

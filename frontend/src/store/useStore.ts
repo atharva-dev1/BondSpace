@@ -47,6 +47,7 @@ interface StoreState {
     setBond: (bond: Bond | null) => void;
     initializeSocket: () => void;
     checkAuth: () => Promise<void>;
+    updateUser: (data: Partial<User>) => void;
     unlockChat: (key: Uint8Array) => void;
     lockChat: () => void;
 }
@@ -133,6 +134,11 @@ export const useStore = create<StoreState>((set, get) => ({
             localStorage.removeItem('bondspace_token');
             set({ user: null, token: null, isAuthenticated: false, isLoading: false, bond: null, isLocked: true, encryptionKey: null });
         }
+    },
+
+    updateUser: (data) => {
+        const { user } = get();
+        if (user) set({ user: { ...user, ...data } });
     },
 
     unlockChat: (key) => set({ isLocked: false, encryptionKey: key }),
