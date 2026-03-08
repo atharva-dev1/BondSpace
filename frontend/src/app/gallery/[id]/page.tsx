@@ -2,10 +2,14 @@
 // Client-side logic lives in AlbumDetailClient.tsx
 import AlbumDetailClient from './AlbumDetailClient';
 
-// Required for Next.js output: 'export' — returns [] so all IDs are
-// handled client-side at runtime via useParams()
+// Force Next.js to treat this as a static page with client-side data
+export const dynamic = 'force-static';
+export const dynamicParams = false;
+
+// Next.js static export needs at least one path to generate a static HTML file
+// We give it a dummy 'id' so it generates /gallery/default/index.html
 export async function generateStaticParams() {
-    return [];
+    return [{ id: 'default' }];
 }
 
 export default function AlbumDetailPage() {
