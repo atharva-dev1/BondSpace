@@ -79,17 +79,17 @@ export default function ProfileSetup({ onDone }: { onDone: () => void }) {
                 <AnimatePresence mode="wait">
                     {/* STEP 1 — Avatar */}
                     {step === 'avatar' && (
-                        <motion.div key="avatar" initial={{ opacity: 0, x: 40 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -40 }} className="flex-1 flex flex-col">
-                            <div className="mb-8">
+                        <motion.div key="avatar" initial={{ opacity: 0, x: 40 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -40 }} className="flex-1 flex flex-col min-h-0">
+                            <div className="mb-8 shrink-0">
                                 <p className="text-rose-400 text-sm font-bold uppercase tracking-widest mb-2">Step 1 of 3</p>
                                 <h2 className="text-3xl font-black text-white">Pick your vibe</h2>
                                 <p className="text-gray-500 text-sm mt-2">This emoji represents you to your partner.</p>
                             </div>
 
                             {/* Preview */}
-                            <div className="text-7xl text-center mb-6">{form.avatar}</div>
+                            <div className="text-7xl text-center mb-6 shrink-0">{form.avatar}</div>
 
-                            <div className="grid grid-cols-5 gap-3 mb-auto">
+                            <div className="grid grid-cols-5 gap-3 overflow-y-auto pb-6 no-scrollbar">
                                 {AVATARS.map(emoji => (
                                     <button
                                         key={emoji}
@@ -107,52 +107,53 @@ export default function ProfileSetup({ onDone }: { onDone: () => void }) {
                         </motion.div>
                     )}
 
-                    {/* STEP 2 — Name & Gender */}
                     {step === 'theme' && (
-                        <motion.div key="theme" initial={{ opacity: 0, x: 40 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -40 }} className="flex-1 flex flex-col">
-                            <div className="mb-8">
+                        <motion.div key="theme" initial={{ opacity: 0, x: 40 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -40 }} className="flex-1 flex flex-col min-h-0">
+                            <div className="mb-6 shrink-0">
                                 <p className="text-rose-400 text-sm font-bold uppercase tracking-widest mb-2">Step 2 of 3</p>
                                 <h2 className="text-3xl font-black text-white">Your details</h2>
                                 <p className="text-gray-500 text-sm mt-2">Tell us a bit about yourself.</p>
                             </div>
 
-                            {/* Name field */}
-                            <div className="mb-6">
-                                <label className="text-gray-400 text-xs font-semibold uppercase tracking-wider block mb-2">Display Name</label>
-                                <div className="relative">
-                                    <User size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500" />
-                                    <input
-                                        type="text"
-                                        value={form.name}
-                                        onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
-                                        placeholder="What should we call you?"
-                                        maxLength={50}
-                                        className="w-full bg-white/5 border border-white/10 text-white placeholder-gray-600 rounded-2xl pl-10 pr-4 py-4 focus:outline-none focus:border-rose-500/50 transition-all"
-                                    />
+                            <div className="overflow-y-auto pb-4 no-scrollbar flex-1">
+                                {/* Name field */}
+                                <div className="mb-6">
+                                    <label className="text-gray-400 text-xs font-semibold uppercase tracking-wider block mb-2">Display Name</label>
+                                    <div className="relative">
+                                        <User size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500" />
+                                        <input
+                                            type="text"
+                                            value={form.name}
+                                            onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
+                                            placeholder="What should we call you?"
+                                            maxLength={50}
+                                            className="w-full bg-white/5 border border-white/10 text-white placeholder-gray-600 rounded-2xl pl-10 pr-4 py-4 focus:outline-none focus:border-rose-500/50 transition-all"
+                                        />
+                                    </div>
                                 </div>
-                            </div>
 
-                            {/* Gender */}
-                            <div className="mb-auto">
-                                <label className="text-gray-400 text-xs font-semibold uppercase tracking-wider block mb-3">Gender</label>
-                                <div className="grid grid-cols-2 gap-3">
-                                    {GENDERS.map(g => (
-                                        <button
-                                            key={g.value}
-                                            onClick={() => {
-                                                setForm(f => ({ ...f, gender: g.value }));
-                                                // Proactively update store for immediate theme change without resetting state
-                                                updateUser({ gender: g.value });
-                                            }}
-                                            className={`flex items-center gap-3 px-4 py-4 rounded-2xl border transition-all text-left ${form.gender === g.value
-                                                ? 'border-rose-500 bg-rose-500/10 text-white'
-                                                : 'border-white/10 bg-white/5 text-gray-400 hover:border-white/20 hover:bg-white/10'
-                                                }`}
-                                        >
-                                            <span className="text-2xl shrink-0">{g.icon}</span>
-                                            <span className="text-sm font-semibold">{g.label}</span>
-                                        </button>
-                                    ))}
+                                {/* Gender */}
+                                <div>
+                                    <label className="text-gray-400 text-xs font-semibold uppercase tracking-wider block mb-3">Gender</label>
+                                    <div className="grid grid-cols-2 gap-3">
+                                        {GENDERS.map(g => (
+                                            <button
+                                                key={g.value}
+                                                onClick={() => {
+                                                    setForm(f => ({ ...f, gender: g.value }));
+                                                    // Proactively update store for immediate theme change without resetting state
+                                                    updateUser({ gender: g.value });
+                                                }}
+                                                className={`flex items-center gap-3 px-4 py-4 rounded-2xl border transition-all text-left ${form.gender === g.value
+                                                    ? 'border-rose-500 bg-rose-500/10 text-white'
+                                                    : 'border-white/10 bg-white/5 text-gray-400 hover:border-white/20 hover:bg-white/10'
+                                                    }`}
+                                            >
+                                                <span className="text-2xl shrink-0">{g.icon}</span>
+                                                <span className="text-sm font-semibold">{g.label}</span>
+                                            </button>
+                                        ))}
+                                    </div>
                                 </div>
                             </div>
                         </motion.div>
@@ -160,33 +161,35 @@ export default function ProfileSetup({ onDone }: { onDone: () => void }) {
 
                     {/* STEP 3 — Bio */}
                     {step === 'bio' && (
-                        <motion.div key="bio" initial={{ opacity: 0, x: 40 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -40 }} className="flex-1 flex flex-col">
-                            <div className="mb-8">
+                        <motion.div key="bio" initial={{ opacity: 0, x: 40 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -40 }} className="flex-1 flex flex-col min-h-0">
+                            <div className="mb-6 shrink-0">
                                 <p className="text-rose-400 text-sm font-bold uppercase tracking-widest mb-2">Step 3 of 3</p>
                                 <h2 className="text-3xl font-black text-white">Your story</h2>
                                 <p className="text-gray-500 text-sm mt-2">Something your partner will see. Optional.</p>
                             </div>
 
-                            {/* Profile preview card */}
-                            <div className="flex items-center gap-4 bg-white/5 border border-white/10 rounded-2xl p-4 mb-8">
-                                <div className="w-14 h-14 rounded-xl flex items-center justify-center text-3xl bg-gradient-to-br from-rose-500/20 to-purple-500/20 border border-white/10">
-                                    {form.avatar}
+                            <div className="overflow-y-auto pb-4 no-scrollbar flex-1 flex flex-col">
+                                {/* Profile preview card */}
+                                <div className="flex items-center gap-4 bg-white/5 border border-white/10 rounded-2xl p-4 mb-6 shrink-0">
+                                    <div className="w-14 h-14 rounded-xl flex items-center justify-center text-3xl bg-gradient-to-br from-rose-500/20 to-purple-500/20 border border-white/10 shrink-0">
+                                        {form.avatar}
+                                    </div>
+                                    <div className="min-w-0">
+                                        <p className="font-bold text-white truncate">{form.name}</p>
+                                        <p className="text-xs text-gray-500 capitalize truncate">{form.gender}</p>
+                                    </div>
                                 </div>
-                                <div>
-                                    <p className="font-bold text-white">{form.name}</p>
-                                    <p className="text-xs text-gray-500 capitalize">{form.gender}</p>
-                                </div>
-                            </div>
 
-                            <textarea
-                                value={form.bio}
-                                onChange={e => setForm(f => ({ ...f, bio: e.target.value }))}
-                                placeholder="Something about you... what makes you, you? ✨"
-                                rows={5}
-                                maxLength={150}
-                                className="w-full bg-white/5 border border-white/10 text-white placeholder-gray-600 rounded-2xl px-4 py-4 focus:outline-none focus:border-rose-500/50 resize-none transition-all mb-1"
-                            />
-                            <p className="text-right text-xs text-gray-600 mb-auto">{form.bio.length}/150</p>
+                                <textarea
+                                    value={form.bio}
+                                    onChange={e => setForm(f => ({ ...f, bio: e.target.value }))}
+                                    placeholder="Something about you... what makes you, you? ✨"
+                                    rows={5}
+                                    maxLength={150}
+                                    className="w-full shrink-0 bg-white/5 border border-white/10 text-white placeholder-gray-600 rounded-2xl px-4 py-4 focus:outline-none focus:border-rose-500/50 resize-none transition-all mb-1"
+                                />
+                                <p className="text-right text-xs text-gray-600 mb-2 shrink-0">{form.bio.length}/150</p>
+                            </div>
                         </motion.div>
                     )}
                 </AnimatePresence>

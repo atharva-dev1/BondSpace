@@ -19,7 +19,8 @@ interface StoreItem {
 }
 
 export default function StorePage() {
-    const { user, token, isAuthenticated, checkAuth } = useStore();
+    const { user, token, isAuthenticated, checkAuth, isLoading } = useStore();
+    const router = require('next/navigation').useRouter();
     const [items, setItems] = useState<StoreItem[]>([]);
     const [inventory, setInventory] = useState<string[]>([]);
     const [loading, setLoading] = useState(true);
@@ -27,9 +28,12 @@ export default function StorePage() {
     const [showSuccess, setShowSuccess] = useState<string | null>(null);
 
     useEffect(() => {
-        if (!user) checkAuth();
-        fetchStore();
-    }, [token]);
+        if (!isLoading && !isAuthenticated) {
+            router.push('/');
+        } else if (isAuthenticated && token) {
+            fetchStore();
+        }
+    }, [isLoading, isAuthenticated, token]);
 
     const fetchStore = async () => {
         if (!token) return;
