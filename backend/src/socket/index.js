@@ -94,8 +94,32 @@ const initializeSocket = (server) => {
                 // Wait, for true E2E, the client should encrypt/decrypt. But here we do server-side AES-256 for DB.
                 // So we send back the server-generated message object + the plaintext ONLY to the connected volatile sockets.
                 const realtimeMsg = { ...savedMsg, message };
-
                 io.to(socket.coupleId).emit('receive_message', realtimeMsg);
+
+                // Proactive AI Analysis: Count messages in Redis
+                const countKey = `msg_count:${socket.coupleId}`;
+                const count = await redis.incr(countKey);
+
+                if (count % 20 === 0) {
+                    console.log(`🤖 AI Guru Triggered: Analysing tone for couple ${socket.coupleId}`);
+                    const { analyseToneInternal } = require('../routes/aiGuru');
+
+                    // Background analysis
+                    analyseToneInternal(socket.coupleId).then(analysis => {
+                        if (analysis.is_tense) {
+                            io.to(socket.coupleId).emit('guru:intervention', {
+                                type: 'conflict_detected',
+                                message: analysis.suggestion,
+                                nvc_prompt: analysis.nvc_prompt
+                            });
+                        } else {
+                            io.to(socket.coupleId).emit('guru:aura_update', {
+                                mood: analysis.mood,
+                                message: analysis.aura_message
+                            });
+                        }
+                    }).catch(err => console.error('Proactive AI Guru error:', err));
+                }
             } catch (err) {
                 console.error('Socket send_message error:', err);
             }

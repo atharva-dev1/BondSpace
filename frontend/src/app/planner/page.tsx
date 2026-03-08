@@ -58,7 +58,7 @@ export default function AIPlannerPage() {
         setSuggestionMode(true);
         try {
             const { data } = await axios.post(`${API_URL}/ai/plan-activity`,
-                { theme: 'romantic', mood: 'adventurous' },
+                { theme: 'romantic', mood: 'adventurous', couple_id: bond?.id },
                 { headers: { Authorization: `Bearer ${token}` } }
             );
             setSuggestions(data.suggestions);

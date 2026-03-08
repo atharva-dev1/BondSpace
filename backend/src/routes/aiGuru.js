@@ -95,47 +95,44 @@ const chatWithGuru = async (req, res) => {
     }
 };
 
-// POST /api/ai/analyse-tone — Analyse chat tone of a couple
-const analyseTone = async (req, res) => {
+// Internal helper for proactive tone analysis
+const analyseToneInternal = async (couple_id) => {
     try {
-        const { couple_id } = req.body;
-
-        // Get recent messages (decrypted)
         const messagesRes = await query(
-            `SELECT message, nonce, sender_id FROM messages WHERE couple_id=$1 AND is_encrypted=true AND timestamp > NOW() - INTERVAL '7 days' ORDER BY timestamp DESC LIMIT 30`,
+            `SELECT message, nonce, sender_id FROM messages WHERE couple_id=$1 AND is_encrypted=true AND timestamp > NOW() - INTERVAL '2 days' ORDER BY timestamp DESC LIMIT 20`,
             [couple_id]
         );
 
-        if (messagesRes.rows.length === 0) {
-            return res.json({ analysis: 'Not enough messages to analyse yet. Keep chatting! 💬' });
-        }
+        if (messagesRes.rows.length < 5) return { mood: 'Neutral', aura_message: 'Keep the chat flowing! 💕' };
 
         const { decryptMessage } = require('../services/encryptionService');
-        const sampleMessages = messagesRes.rows.slice(0, 10).map(m => {
-            try {
-                const cleartext = decryptMessage(m.message, m.nonce);
-                return cleartext.slice(0, 100);
-            } catch { return ''; }
+        const sampleMessages = messagesRes.rows.map(m => {
+            try { return decryptMessage(m.message, m.nonce).slice(0, 100); }
+            catch { return ''; }
         }).filter(Boolean).join('\n');
 
-        const prompt = `Analyse the emotional tone of this recent couple chat. Identify:
-1. Overall mood (positive/neutral/tense)
-2. Communication health score (0-100)
-3. One specific actionable suggestion for improvement
-4. One thing they are doing well
-
-Chat excerpts (anonymised):
-${sampleMessages}
-
-Keep your response encouraging and under 150 words.`;
+        const prompt = `Analyse this couple's chat tone. 
+        Output ONLY a JSON object:
+        {
+          "mood": "Positive/Neutral/Tense",
+          "is_tense": boolean,
+          "aura_message": "One warm sentence about their vibe",
+          "suggestion": "De-escalation tip if tense, else encouragement",
+          "nvc_prompt": "A Non-Violent Communication prompt starting with 'I feel... when... because...' if tense"
+        }
+        Chat:
+        ${sampleMessages}`;
 
         const response = await axios.post(
             `${SAMBANOVA_BASE_URL}/chat/completions`,
             {
                 model: SAMBANOVA_MODEL,
-                messages: [{ role: 'system', content: SYSTEM_PROMPT }, { role: 'user', content: prompt }],
+                messages: [
+                    { role: 'system', content: 'You are a structured relationship analyzer. Output ONLY raw JSON.' },
+                    { role: 'user', content: prompt }
+                ],
                 max_tokens: 300,
-                temperature: 0.5,
+                temperature: 0.3,
             },
             {
                 headers: { Authorization: `Bearer ${process.env.SAMBANOVA_API_KEY}`, 'Content-Type': 'application/json' },
@@ -143,10 +140,21 @@ Keep your response encouraging and under 150 words.`;
             }
         );
 
-        res.json({ analysis: response.data.choices[0].message.content });
+        return JSON.parse(response.data.choices[0].message.content.trim());
     } catch (err) {
-        console.error('Tone analysis error:', err.message);
-        res.json({ analysis: "Looks like communication was active this week! Keep the conversations flowing and remember to check in on each other's feelings 💕" });
+        console.error('analyseToneInternal error:', err.message);
+        return { mood: 'Neutral', is_tense: false, aura_message: 'Your bond is growing! 💕' };
+    }
+};
+
+// POST /api/ai/analyse-tone — Analyse chat tone of a couple
+const analyseTone = async (req, res) => {
+    try {
+        const { couple_id } = req.body;
+        const analysis = await analyseToneInternal(couple_id);
+        res.json({ analysis: analysis.aura_message, detail: analysis });
+    } catch (err) {
+        res.json({ analysis: "BondSpace is glowing with your energy! 💕" });
     }
 };
 
@@ -163,23 +171,26 @@ const getGuruHistory = async (req, res) => {
     }
 };
 
-// POST /api/ai/plan-activity — Get structured activity suggestions
+// POST /api/ai/plan-activity — Get structured activity suggestions with memory context
 const planActivity = async (req, res) => {
     try {
-        const { theme, mood } = req.body;
+        const { theme, mood, couple_id } = req.body;
 
-        const prompt = `Suggest 3 unique, romantic, or fun couple activities based on the theme: "${theme || 'any'}" and mood: "${mood || 'any'}".
-        Format your response as a JSON array of objects with the following keys:
-        - title: Short catchy name
-        - description: One sentence pitch
-        - location: Where to go (or 'At Home')
-        - theme: Category (e.g., Adventure, Cozy, Intellectual)
-        - duration: Estimated time (e.g., 2 hours)
-        
-        Example JSON:
-        [
-          { "title": "Starlit Picnic", "description": "Package some snacks and head to the nearest park for stargazing.", "location": "Local Park", "theme": "Cozy", "duration": "1-2 hours" }
-        ]
+        // Fetch relationship context (Timeline & Photos)
+        let memoryContext = '';
+        if (couple_id) {
+            const memories = await query(
+                `SELECT label, event_type FROM timeline_events WHERE couple_id=$1 ORDER BY event_date DESC LIMIT 3`,
+                [couple_id]
+            );
+            if (memories.rows.length > 0) {
+                memoryContext = `The couple has these recent memories: ${memories.rows.map(m => m.label).join(', ')}. Try to suggest something that references or builds on these.`;
+            }
+        }
+
+        const prompt = `Suggest 3 unique couple activities for theme: "${theme || 'any'}" and mood: "${mood || 'any'}".
+        ${memoryContext}
+        Format your response as a JSON array of objects with keys: title, description, location, theme, duration.
         Return ONLY the JSON array.`;
 
         const response = await axios.post(
@@ -190,7 +201,7 @@ const planActivity = async (req, res) => {
                     { role: 'system', content: 'You are a structured output assistant. Output only raw JSON.' },
                     { role: 'user', content: prompt }
                 ],
-                max_tokens: 512,
+                max_tokens: 600,
                 temperature: 0.8,
             },
             {
@@ -203,10 +214,8 @@ const planActivity = async (req, res) => {
         try {
             suggestions = JSON.parse(response.data.choices[0].message.content.trim());
         } catch (e) {
-            // Simple fallback if AI fails to return JSON
             suggestions = [
-                { title: "Home Movie Marathon", description: "Binge-watch your favorite series with plenty of popcorn.", location: "Home", theme: "Relaxing", duration: "3-4 hours" },
-                { title: "Local Cafe Crawl", description: "Try three different desserts at three different cafes.", location: "Downtown", theme: "Adventurous", duration: "2 hours" }
+                { title: "Home Movie Marathon", description: "Binge-watch your favorite series with plenty of popcorn.", location: "Home", theme: "Relaxing", duration: "3-4 hours" }
             ];
         }
 
@@ -217,4 +226,4 @@ const planActivity = async (req, res) => {
     }
 };
 
-module.exports = { chatWithGuru, analyseTone, getGuruHistory, planActivity };
+module.exports = { chatWithGuru, analyseTone, getGuruHistory, planActivity, analyseToneInternal };

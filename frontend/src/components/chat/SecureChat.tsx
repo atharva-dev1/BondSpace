@@ -5,7 +5,7 @@ import { useStore } from '@/store/useStore';
 import { API_URL } from '@/lib/utils';
 import axios from 'axios';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Send, Pin, Clock, Mic, MicOff, Square, Play, Pause, Paperclip, Heart, Smile } from 'lucide-react';
+import { Send, Pin, Clock, Mic, MicOff, Square, Play, Pause, Paperclip, Heart, Smile, Sparkles, AlertCircle, Info, X } from 'lucide-react';
 import { encryptMessage, decryptMessage } from '@/lib/encryption';
 import MoodSelector from './MoodSelector';
 
@@ -52,6 +52,8 @@ export default function SecureChat() {
     const localBlobUrls = useRef<Map<string, string>>(new Map());
     const [previewPlaying, setPreviewPlaying] = useState(false);
     const previewAudioRef = useRef<HTMLAudioElement | null>(null);
+    const [auraUpdate, setAuraUpdate] = useState<any>(null);
+    const [guruIntervention, setGuruIntervention] = useState<any>(null);
 
     // --- Reliable Web Audio API Playback ---
     const audioContextRef = useRef<AudioContext | null>(null);
@@ -105,9 +107,21 @@ export default function SecureChat() {
         };
         socket.on('receive_message', handleMsg);
         socket.on('message_reacted', handleReaction);
+
+        socket.on('guru:aura_update', (data) => {
+            setAuraUpdate(data);
+            setTimeout(() => setAuraUpdate(null), 5000);
+        });
+
+        socket.on('guru:intervention', (data) => {
+            setGuruIntervention(data);
+        });
+
         return () => {
             socket.off('receive_message', handleMsg);
             socket.off('message_reacted', handleReaction);
+            socket.off('guru:aura_update');
+            socket.off('guru:intervention');
         };
     }, [socket, encryptionKey]);
 
@@ -418,6 +432,68 @@ export default function SecureChat() {
             <AnimatePresence>
                 {showMoodSelector && (
                     <MoodSelector onClose={() => setShowMoodSelector(false)} />
+                )}
+            </AnimatePresence>
+
+            {/* AI Guru Aura Update Toast */}
+            <AnimatePresence>
+                {auraUpdate && (
+                    <motion.div
+                        initial={{ opacity: 0, y: -20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, scale: 0.9 }}
+                        className="absolute top-24 left-4 right-4 z-40"
+                    >
+                        <div className="bg-emerald-500/10 backdrop-blur-xl border border-emerald-500/20 p-4 rounded-3xl flex items-center gap-4 shadow-2xl">
+                            <div className="w-10 h-10 rounded-2xl bg-emerald-500 flex items-center justify-center text-white">
+                                <Sparkles size={20} />
+                            </div>
+                            <div className="flex-1">
+                                <p className="text-emerald-400 text-[10px] font-black uppercase tracking-widest">Aura Boost</p>
+                                <p className="text-white text-xs font-medium">{auraUpdate.message}</p>
+                            </div>
+                        </div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+
+            {/* AI Guru Intervention Modal */}
+            <AnimatePresence>
+                {guruIntervention && (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="absolute inset-0 z-[60] flex items-center justify-center p-6 bg-black/90 backdrop-blur-md"
+                    >
+                        <motion.div
+                            initial={{ scale: 0.9, y: 20 }}
+                            animate={{ scale: 1, y: 0 }}
+                            exit={{ scale: 0.9, y: 20 }}
+                            className="w-full max-w-sm bg-zinc-900 border border-rose-500/30 rounded-[40px] p-8 flex flex-col shadow-2xl text-center"
+                        >
+                            <div className="w-16 h-16 rounded-full bg-rose-500/20 flex items-center justify-center text-rose-500 mx-auto mb-6">
+                                <AlertCircle size={32} />
+                            </div>
+                            <h3 className="text-2xl font-bold text-white mb-2">Aura Conflict Detected</h3>
+                            <p className="text-zinc-400 text-sm mb-8">{guruIntervention.message}</p>
+
+                            <div className="bg-rose-500/5 p-6 rounded-3xl border border-rose-500/10 mb-8 text-left">
+                                <div className="flex items-center gap-2 mb-2">
+                                    <Info size={14} className="text-rose-400" />
+                                    <span className="text-[10px] font-black uppercase tracking-widest text-rose-400">Try saying this:</span>
+                                </div>
+                                <p className="text-white text-sm italic font-serif leading-relaxed">"{guruIntervention.nvc_prompt}"</p>
+                            </div>
+
+                            <button
+                                onClick={() => setGuruIntervention(null)}
+                                className="w-full py-4 bg-rose-500 text-white font-bold rounded-2xl shadow-lg shadow-rose-500/20 active:scale-95 transition-all"
+                            >
+                                Noted, Thanks Guru
+                            </button>
+                        </motion.div>
+                    </motion.div>
                 )}
             </AnimatePresence>
         </div>
