@@ -109,8 +109,30 @@ export default function StorePage() {
                                     className="glass p-4 rounded-[32px] border-white/5 bg-white/[0.02] flex flex-col items-center text-center space-y-3 relative group"
                                 >
                                     {/* Icon/Media Preview */}
-                                    <div className="w-16 h-16 rounded-2xl bg-white/5 flex items-center justify-center text-3xl shadow-inner">
-                                        {item.media_url}
+                                    <div className="w-16 h-16 rounded-2xl bg-white/5 flex items-center justify-center text-3xl shadow-inner relative overflow-visible">
+                                        {item.type === 'sticker_pack' ? (
+                                            <div className="flex -space-x-4">
+                                                {(() => {
+                                                    try {
+                                                        const emojis = JSON.parse(item.media_url);
+                                                        return emojis.slice(0, 3).map((emoji: string, i: number) => (
+                                                            <span key={i} className="relative drop-shadow-xl hover:scale-125 transition-transform" style={{ zIndex: 10 - i }}>{emoji}</span>
+                                                        ));
+                                                    } catch (e) { return item.media_url; }
+                                                })()}
+                                                {(() => {
+                                                    try {
+                                                        const emojis = JSON.parse(item.media_url);
+                                                        if (emojis.length > 3) return <span className="absolute -top-2 -right-2 bg-rose-500 text-white text-[8px] font-black px-1.5 py-0.5 rounded-full shadow-lg">+{emojis.length - 3}</span>;
+                                                    } catch (e) { }
+                                                    return null;
+                                                })()}
+                                            </div>
+                                        ) : item.type === 'theme' ? (
+                                            <div className="w-10 h-10 rounded-full shadow-lg border-2 border-white/20" style={{ backgroundColor: item.media_url }} />
+                                        ) : (
+                                            item.media_url
+                                        )}
                                     </div>
 
                                     <div>

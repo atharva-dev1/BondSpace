@@ -32,14 +32,13 @@ export default function LetterWriter({ onClose, onSealed }: { onClose: () => voi
 
         setUploading(true);
         const formData = new FormData();
-        formData.append('file', file);
         formData.append('couple_id', bond.id);
+        formData.append('media', file);
 
         try {
             const res = await axios.post(`${API_URL}/gallery/timeline/upload`, formData, {
                 headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'Content-Type': 'multipart/form-data'
+                    'Authorization': `Bearer ${token}`
                 }
             });
             setMediaUrl(res.data.media_url);
@@ -52,6 +51,11 @@ export default function LetterWriter({ onClose, onSealed }: { onClose: () => voi
     };
 
     const handleSeal = async () => {
+        if (!partnerId) {
+            alert('Partner information not found. Please ensure you are bonded.');
+            return;
+        }
+
         if (!content || !openAt) {
             alert('Please write something and pick a date to seal the capsule.');
             return;
@@ -84,7 +88,7 @@ export default function LetterWriter({ onClose, onSealed }: { onClose: () => voi
             initial={{ opacity: 0, y: '100%' }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: '100%' }}
-            className="fixed inset-0 z-[120] bg-black flex flex-col"
+            className="fixed inset-0 z-[2000] bg-black flex flex-col"
         >
             {/* Header */}
             <div className="p-6 flex items-center justify-between border-b border-white/5">
@@ -99,7 +103,7 @@ export default function LetterWriter({ onClose, onSealed }: { onClose: () => voi
             </div>
 
             {/* Scrollable Content */}
-            <div className="flex-1 overflow-y-auto p-6 space-y-8 pb-32">
+            <div className="flex-1 overflow-y-auto p-6 space-y-8 pb-60">
                 {/* Visual Attachment */}
                 <div className="space-y-4">
                     <label className="text-zinc-500 text-[10px] uppercase font-black tracking-widest">Attach a Photo</label>
@@ -177,7 +181,7 @@ export default function LetterWriter({ onClose, onSealed }: { onClose: () => voi
             </div>
 
             {/* Bottom Bar */}
-            <div className="p-8 absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black via-black to-transparent">
+            <div className="p-8 pb-32 absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black via-black/80 to-transparent">
                 <button
                     onClick={handleSeal}
                     disabled={sealing || uploading}

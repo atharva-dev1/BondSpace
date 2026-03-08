@@ -51,7 +51,7 @@ CREATE TABLE IF NOT EXISTS messages (
   couple_id UUID NOT NULL REFERENCES couples(id) ON DELETE CASCADE,
   sender_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
   message TEXT, -- encrypted ciphertext
-  message_type VARCHAR(20) DEFAULT 'text' CHECK (message_type IN ('text', 'voice', 'image', 'video', 'reaction', 'pinned')),
+  message_type VARCHAR(20) DEFAULT 'text' CHECK (message_type IN ('text', 'voice', 'image', 'video', 'reaction', 'pinned', 'sticker')),
   media_url TEXT,
   is_encrypted BOOLEAN DEFAULT TRUE,
   nonce TEXT, -- libsodium nonce for decryption

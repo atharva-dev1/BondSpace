@@ -36,8 +36,8 @@ const express = require('express');
         await migrateUserProfile(pool);
         await migrateMood(pool);
         await migrateEternalWall(pool);
-        await migrateTimeCapsule();
-        await migrateGamification();
+        await migrateTimeCapsule(pool);
+        await migrateGamification(pool);
         console.log('✅ All migrations successful');
     } catch (err) {
         console.error('Auto-migration failed', err);

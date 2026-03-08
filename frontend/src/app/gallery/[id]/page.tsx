@@ -74,8 +74,7 @@ export default function AlbumDetailPage() {
         try {
             const { data } = await axios.post(`${API_URL}/gallery/upload`, formData, {
                 headers: {
-                    Authorization: `Bearer ${token}`,
-                    'Content-Type': 'multipart/form-data'
+                    Authorization: `Bearer ${token}`
                 },
                 onUploadProgress: (progressEvent) => {
                     const percentCompleted = Math.round((progressEvent.loaded * 100) / (progressEvent.total || 100));

@@ -130,11 +130,7 @@ app.get('/api/ai/guru/history/:couple_id', aiGuruRoutes.getGuruHistory);
 app.post('/api/ai/plan-activity', aiGuruRoutes.planActivity);
 
 // Gamification & Points
-app.post('/api/gamification/checkin', gamificationRoutes.dailyCheckin);
-app.get('/api/gamification/stats/:user_id', gamificationRoutes.getStats);
-app.get('/api/gamification/unlockables/:user_id', gamificationRoutes.getUnlockables);
-app.get('/api/gamification/challenges', gamificationRoutes.getChallenges);
-app.get('/api/gamification/achievements', gamificationRoutes.getAchievements);
+app.use('/api/gamification', gamificationRoutes.router);
 
 // Love Letters
 app.post('/api/letters', letterRoutes.writeLetter);
@@ -180,7 +176,13 @@ app.get('/health', (req, res) => res.json({ status: 'ok', time: new Date() }));
 
 // Error handling
 app.use((err, req, res, next) => {
-    logger.error(`${req.method} ${req.url} - ${err.message}`, err.stack);
+    const fs = require('fs');
+    const path = require('path');
+    const logPath = path.join(__dirname, '..', 'DEBUG_500.log');
+    const logEntry = `[${new Date().toISOString()}] ${req.method} ${req.url}\nError: ${err.message}\nStack: ${err.stack}\n\n`;
+    fs.appendFileSync(logPath, logEntry);
+
+    console.error(`${req.method} ${req.url} - ${err.message}`, err.stack);
 
     const response = {
         error: isProduction ? 'Internal Server Error' : err.message

@@ -65,7 +65,7 @@ export const useStore = create<StoreState>((set, get) => ({
     bond: null,
     socket: null,
     isAuthenticated: false,
-    isLoading: true,
+    isLoading: false,
     isLocked: true, // Default to locked
     encryptionKey: null,
     partnerMood: null,
@@ -126,6 +126,7 @@ export const useStore = create<StoreState>((set, get) => ({
             return;
         }
 
+        set({ isLoading: true });
         try {
             const { data } = await axios.get(`${API_URL}/auth/me`, {
                 headers: { Authorization: `Bearer ${token}` }

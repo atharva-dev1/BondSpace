@@ -1,5 +1,8 @@
+const express = require('express');
+const router = express.Router();
 const { query } = require('../config/database');
 const { v4: uuidv4 } = require('uuid');
+const protect = require('../middleware/auth');
 
 // POST /api/gamification/checkin — Daily check-in
 const dailyCheckin = async (req, res) => {
@@ -40,7 +43,8 @@ const dailyCheckin = async (req, res) => {
 
         res.json({ points: updated.rows[0], xp_earned: bonusXP, streak: newStreak, message: `🔥 Day ${newStreak} streak! +${bonusXP} Love XP` });
     } catch (err) {
-        res.status(500).json({ error: 'Failed to check in' });
+        console.error('dailyCheckin error:', err);
+        res.status(500).json({ error: 'Failed to check in', details: err.message });
     }
 };
 
@@ -58,6 +62,7 @@ const getStats = async (req, res) => {
 
         res.json({ stats });
     } catch (err) {
+        console.error('getStats error:', err);
         res.status(500).json({ error: 'Failed to get stats' });
     }
 };
@@ -73,24 +78,29 @@ const getUnlockables = async (req, res) => {
         );
         res.json({ unlocked: result.rows });
     } catch (err) {
+        console.error('getUnlockables error:', err);
         res.status(500).json({ error: 'Failed to get unlockables' });
     }
 };
 
 // Helper: auto-unlock rewards based on XP
 async function checkAndUnlockRewards(userId, currentXP, res) {
-    const eligible = await query(
-        `SELECT u.id, u.name FROM unlockables u
-     WHERE u.xp_required <= $1
-     AND u.id NOT IN (SELECT unlockable_id FROM user_unlockables WHERE user_id=$2)`,
-        [currentXP, userId]
-    );
-
-    for (const reward of eligible.rows) {
-        await query(
-            'INSERT INTO user_unlockables (user_id, unlockable_id) VALUES ($1,$2) ON CONFLICT DO NOTHING',
-            [userId, reward.id]
+    try {
+        const eligible = await query(
+            `SELECT u.id, u.name FROM unlockables u
+         WHERE u.xp_required <= $1
+         AND u.id NOT IN (SELECT unlockable_id FROM user_unlockables WHERE user_id=$2)`,
+            [currentXP, userId]
         );
+
+        for (const reward of eligible.rows) {
+            await query(
+                'INSERT INTO user_unlockables (user_id, unlockable_id) VALUES ($1,$2) ON CONFLICT DO NOTHING',
+                [userId, reward.id]
+            );
+        }
+    } catch (err) {
+        console.error('checkAndUnlockRewards error:', err);
     }
 }
 
@@ -150,6 +160,7 @@ const getAchievements = async (req, res) => {
             all: all.rows
         });
     } catch (err) {
+        console.error('getAchievements error:', err);
         res.status(500).json({ error: 'Failed to fetch achievements' });
     }
 };
@@ -188,4 +199,14 @@ const updateChallengeProgress = async (userId, taskType, increment = 1) => {
     }
 };
 
-module.exports = { dailyCheckin, getStats, getUnlockables, getChallenges, getAchievements, updateChallengeProgress };
+// Define routes
+router.post('/checkin', protect, dailyCheckin);
+router.get('/stats/:user_id', getStats); // Can be public for partner viewing
+router.get('/unlockables/:user_id', getUnlockables);
+router.get('/challenges', protect, getChallenges);
+router.get('/achievements', protect, getAchievements);
+
+module.exports = {
+    router,
+    updateChallengeProgress
+};

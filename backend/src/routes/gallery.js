@@ -11,6 +11,7 @@ const upload = multer({ storage, limits: { fileSize: 50 * 1024 * 1024 } }); // 5
 // Helper: upload buffer to Cloudinary
 const uploadToCloudinary = (buffer, options = {}) =>
     new Promise((resolve, reject) => {
+        console.log('[Cloudinary] Starting upload stream...', { options });
         const uploadStream = cloudinary.uploader.upload_stream(
             {
                 folder: 'bondspace',
@@ -23,6 +24,7 @@ const uploadToCloudinary = (buffer, options = {}) =>
                     console.error('[Cloudinary Stream Error]', err);
                     return reject(err);
                 }
+                console.log('[Cloudinary] Upload success');
                 resolve(result);
             }
         );
@@ -166,7 +168,7 @@ const uploadTimelineMedia = async (req, res) => {
         });
     } catch (err) {
         console.error('[uploadTimelineMedia] FATAL error:', err);
-        res.status(500).json({ error: 'Upload failed', details: err.message });
+        res.status(500).json({ error: 'Upload failed', details: err.message, stack: err.stack });
     }
 };
 

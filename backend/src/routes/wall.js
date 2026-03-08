@@ -23,7 +23,8 @@ router.get('/', protect, async (req, res) => {
 
         res.json({ elements: elements.rows });
     } catch (err) {
-        res.status(500).json({ message: err.message });
+        console.error('[WALL ERROR] FATAL:', err);
+        res.status(500).json({ message: err.message, stack: err.stack });
     }
 });
 

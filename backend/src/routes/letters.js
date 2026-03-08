@@ -8,12 +8,18 @@ const { updateChallengeProgress } = require('./gamification');
 const writeLetter = async (req, res) => {
     try {
         const { to_user, couple_id, content, open_trigger, open_at, media_url } = req.body;
+        console.log('[writeLetter] Request:', { to_user, couple_id, open_trigger, open_at });
+
+        if (!to_user || !couple_id || !content) {
+            return res.status(400).json({ error: 'Missing required fields: to_user, couple_id, or content' });
+        }
+
         const { encryptedMessage, nonce } = encryptMessage(content);
 
         const result = await query(
             `INSERT INTO love_letters (id, from_user, to_user, couple_id, content, is_encrypted, open_trigger, open_at, nonce, media_url)
        VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10) RETURNING *`,
-            [uuidv4(), req.user.id, to_user, couple_id, encryptedMessage, true, open_trigger, new Date(open_at), nonce, media_url]
+            [uuidv4(), req.user.id, to_user, couple_id, encryptedMessage, true, open_trigger, new Date(open_at), nonce, media_url || null]
         );
 
         // Phase 20: Daily Challenge Progress (Letter)
@@ -21,8 +27,8 @@ const writeLetter = async (req, res) => {
 
         res.status(201).json({ letter: result.rows[0], message: '💌 Love letter sealed! It will open on the right day.' });
     } catch (err) {
-        console.error('writeLetter error:', err);
-        res.status(500).json({ error: 'Failed to write love letter' });
+        console.error('[writeLetter] FATAL error:', err);
+        res.status(500).json({ error: 'Failed to write love letter', details: err.message, stack: err.stack });
     }
 };
 

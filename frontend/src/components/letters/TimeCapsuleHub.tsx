@@ -189,7 +189,7 @@ function LetterViewer({ letter, onClose }: { letter: any, onClose: () => void })
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-black/95 backdrop-blur-xl"
+            className="fixed inset-0 z-[3000] flex items-center justify-center p-6 bg-black/95 backdrop-blur-xl"
         >
             <motion.div
                 initial={{ scale: 0.9, y: 20 }}
@@ -200,8 +200,12 @@ function LetterViewer({ letter, onClose }: { letter: any, onClose: () => void })
                 {/* Header */}
                 <div className="p-8 pb-4 flex items-center justify-between">
                     <div className="flex items-center gap-4">
-                        <div className="w-12 h-12 rounded-full overflow-hidden border-2 border-rose-500/20 p-0.5">
-                            <img src={letter.from_avatar || '/default-avatar.png'} className="w-full h-full object-cover rounded-full" />
+                        <div className="w-12 h-12 rounded-full overflow-hidden border-2 border-rose-500/20 p-0.5 bg-zinc-800 flex items-center justify-center">
+                            {letter.from_avatar ? (
+                                <img src={letter.from_avatar} className="w-full h-full object-cover rounded-full" />
+                            ) : (
+                                <div className="text-zinc-500 font-bold text-lg">{letter.from_name?.charAt(0) || 'U'}</div>
+                            )}
                         </div>
                         <div>
                             <h4 className="text-white font-bold">{letter.from_name}</h4>
@@ -223,10 +227,10 @@ function LetterViewer({ letter, onClose }: { letter: any, onClose: () => void })
                         </div>
                     )}
 
-                    <div className="relative">
+                    <div className="relative pt-6">
                         {/* Decorative Quote Mark */}
-                        <div className="absolute -top-4 -left-2 text-rose-500/20 text-6xl font-serif">“</div>
-                        <p className="text-white/90 text-lg leading-relaxed font-serif italic relative z-10 px-4">
+                        <div className="absolute top-0 -left-2 text-rose-500/20 text-7xl font-serif">“</div>
+                        <p className="text-white/90 text-xl leading-relaxed font-serif italic relative z-10 px-4 mt-2">
                             {letter.content}
                         </p>
                     </div>

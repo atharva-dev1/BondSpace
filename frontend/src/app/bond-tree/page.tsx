@@ -72,13 +72,12 @@ export default function BondTreePage() {
             // Upload image if selected
             if (selectedFile) {
                 const formData = new FormData();
-                formData.append('media', selectedFile);
                 formData.append('couple_id', bond.id);
+                formData.append('media', selectedFile);
 
                 const { data } = await axios.post(`${API_URL}/gallery/timeline/upload`, formData, {
                     headers: {
-                        'Authorization': `Bearer ${token}`,
-                        'Content-Type': 'multipart/form-data'
+                        'Authorization': `Bearer ${token}`
                     }
                 });
                 media_url = data.media_url;

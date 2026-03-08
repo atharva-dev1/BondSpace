@@ -5,7 +5,7 @@ import { useStore } from '@/store/useStore';
 import { API_URL } from '@/lib/utils';
 import axios from 'axios';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Send, Pin, Clock, Mic, MicOff, Square, Play, Pause, Paperclip, Heart, Smile, Sparkles, AlertCircle, Info, X } from 'lucide-react';
+import { Send, Pin, Clock, Mic, MicOff, Square, Play, Pause, Paperclip, Heart, Smile, Sparkles, AlertCircle, Info, X, Sticker } from 'lucide-react';
 import { encryptMessage, decryptMessage } from '@/lib/encryption';
 import MoodSelector from './MoodSelector';
 
@@ -39,6 +39,10 @@ export default function SecureChat() {
     const [showMoodSelector, setShowMoodSelector] = useState(false);
     const bottomRef = useRef<HTMLDivElement>(null);
 
+    // Stickers state
+    const [showStickers, setShowStickers] = useState(false);
+    const [myStickers, setMyStickers] = useState<{ id: string, name: string, media_url: string }[]>([]);
+
     // Voice note state
     const [isRecording, setIsRecording] = useState(false);
     const [recordingTime, setRecordingTime] = useState(0);
@@ -68,7 +72,7 @@ export default function SecureChat() {
                 const fetched = res.data.messages;
                 const decrypted = await Promise.all(
                     fetched.map(async (msg: Message) => {
-                        if (msg.message_type === 'voice') return msg;
+                        if (msg.message_type === 'voice' || msg.message_type === 'sticker') return msg;
                         try {
                             const plaintext = encryptionKey
                                 ? await decryptMessage(msg.message, encryptionKey)
@@ -84,12 +88,37 @@ export default function SecureChat() {
         } else {
             setLoading(false);
         }
+
+        // Fetch unlocked stickers
+        if (token) {
+            axios.get(`${API_URL}/store`, { headers: { Authorization: `Bearer ${token}` } })
+                .then(res => {
+                    const { items, inventory } = res.data;
+                    const unlockedItems = items.filter((item: any) => (item.type === 'sticker' || item.type === 'sticker_pack') && inventory.includes(item.id));
+                    const flattenedStickers: { id: string, name: string, media_url: string }[] = [];
+                    unlockedItems.forEach((item: any) => {
+                        if (item.type === 'sticker_pack') {
+                            try {
+                                const emojis = JSON.parse(item.media_url);
+                                if (Array.isArray(emojis)) {
+                                    emojis.forEach((emoji, i) => {
+                                        flattenedStickers.push({ id: `${item.id}-${i}`, name: `${item.name} ${i}`, media_url: emoji });
+                                    });
+                                }
+                            } catch (e) { console.error('Failed to parse sticker pack', e); }
+                        } else {
+                            flattenedStickers.push(item);
+                        }
+                    });
+                    setMyStickers(flattenedStickers);
+                }).catch(console.error);
+        }
     }, [bond?.id, token, encryptionKey]);
 
     useEffect(() => {
         if (!socket) return;
         const handleMsg = async (msg: Message) => {
-            if (msg.message_type === 'voice') {
+            if (msg.message_type === 'voice' || msg.message_type === 'sticker') {
                 setMessages(prev => [...prev, msg]);
                 return;
             }
@@ -144,6 +173,15 @@ export default function SecureChat() {
         } catch (err) {
             console.error('Encryption failed:', err);
         }
+    };
+
+    const handleSendSticker = (mediaUrl: string) => {
+        if (!socket) return;
+        setShowStickers(false);
+        socket.emit('send_message', {
+            message: mediaUrl,
+            message_type: 'sticker'
+        });
     };
 
     const startRecording = async () => {
@@ -362,8 +400,8 @@ export default function SecureChat() {
                                     </div>
                                 )}
                                 <div onDoubleClick={() => handleLoveReact(msg.id)}
-                                    className={`relative group max-w-[85%] rounded-[22px] transition-all duration-300 ${isMe ? `text-white rounded-tr-sm border border-white/10 bubble-shadow-me ${isFirstInGroup ? 'bubble-nip-me' : ''}` : `text-white rounded-tl-sm border border-white/10 backdrop-blur-md bubble-shadow-partner bg-zinc-900/60 ${isFirstInGroup ? 'bubble-nip-partner' : ''}`}`}
-                                    style={isMe ? { background: 'linear-gradient(135deg, #f43f5e, #9333ea)' } : {}}>
+                                    className={`relative group max-w-[85%] rounded-[22px] transition-all duration-300 ${msg.message_type === 'sticker' ? 'bg-transparent text-white' : isMe ? `text-white rounded-tr-sm border border-white/10 bubble-shadow-me ${isFirstInGroup ? 'bubble-nip-me' : ''}` : `text-white rounded-tl-sm border border-white/10 backdrop-blur-md bubble-shadow-partner bg-zinc-900/60 ${isFirstInGroup ? 'bubble-nip-partner' : ''}`}`}
+                                    style={msg.message_type === 'sticker' ? {} : (isMe ? { background: 'linear-gradient(135deg, #f43f5e, #9333ea)' } : {})}>
                                     {msg.message_type === 'voice' && msg.media_url ? (
                                         <div className="flex items-center gap-3 px-4 py-3 min-w-[200px]">
                                             <button onClick={() => togglePlayVoice(msg.id, msg.media_url!)} className={`w-10 h-10 rounded-full flex items-center justify-center transition-all ${isMe ? 'bg-white/20 hover:bg-white/30' : 'bg-rose-500/20 hover:bg-rose-500/30'}`}>
@@ -378,11 +416,19 @@ export default function SecureChat() {
                                             <Mic size={14} className="opacity-40" />
                                         </div>
                                     ) : (
-                                        <p className="px-5 py-3.5 text-[15px] leading-[1.6] font-medium break-words whitespace-pre-wrap">{msg.message}</p>
+                                        msg.message_type === 'sticker' ? (
+                                            <div className="pl-4 pr-1 pt-1 pb-1">
+                                                <span className="text-8xl inline-block transition-transform hover:scale-110 filter drop-shadow-[0_10px_20px_rgba(0,0,0,0.7)]">
+                                                    {msg.message}
+                                                </span>
+                                            </div>
+                                        ) : (
+                                            <p className="px-5 py-3.5 text-[15px] leading-[1.6] font-medium break-words whitespace-pre-wrap">{msg.message}</p>
+                                        )
                                     )}
                                     <div className={`flex items-center gap-2 px-5 pb-3 ${isMe ? 'justify-end' : 'justify-start'}`}>
                                         {msg.is_pinned && <Pin size={10} className="text-yellow-300 -rotate-45" />}
-                                        <span className={`text-[9px] font-black tracking-widest uppercase opacity-40 ${isMe ? 'text-white' : 'text-gray-400'}`}>{new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                                        <span className={`text-[9px] font-black tracking-widest uppercase ${msg.message_type === 'sticker' ? 'text-white/90 drop-shadow-md bg-black/40 px-2 py-0.5 rounded-full backdrop-blur-sm' : `opacity-40 ${isMe ? 'text-white' : 'text-gray-400'}`}`}>{new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
                                     </div>
                                     {msg.reactions && msg.reactions.length > 0 && <div className={`absolute -bottom-3 ${isMe ? 'right-4' : 'left-4'} bg-zinc-900 border border-white/10 rounded-full px-2 py-0.5 text-[10px] shadow-2xl flex gap-1 z-10 scale-110`}>{Array.from(new Set(msg.reactions)).map((e, idx) => <span key={idx}>{e}</span>)}</div>}
                                 </div>
@@ -394,7 +440,45 @@ export default function SecureChat() {
             </div>
 
             {/* Input Bar */}
-            <div className="absolute bottom-24 left-0 right-0 px-4 z-20">
+            <div className="absolute bottom-24 left-0 right-0 px-4 z-50">
+                {/* Sticker Picker Popup */}
+                <AnimatePresence>
+                    {showStickers && (
+                        <motion.div
+                            initial={{ opacity: 0, y: 20, scale: 0.95 }}
+                            animate={{ opacity: 1, y: 0, scale: 1 }}
+                            exit={{ opacity: 0, y: 20, scale: 0.95 }}
+                            className="absolute bottom-full left-4 mb-4 bg-zinc-900/95 backdrop-blur-2xl border border-white/10 rounded-3xl p-4 shadow-[0_0_40px_rgba(0,0,0,0.8)] w-[280px]"
+                        >
+                            <div className="flex justify-between items-center mb-3">
+                                <h4 className="text-white text-xs font-black uppercase tracking-widest text-white/50">Your Stickers</h4>
+                                <button onClick={() => setShowStickers(false)} className="text-white/40 hover:text-white">
+                                    <X size={14} />
+                                </button>
+                            </div>
+
+                            {myStickers.length === 0 ? (
+                                <div className="text-center py-6 px-4 bg-white/5 rounded-2xl border-dashed border border-white/10">
+                                    <p className="text-white/40 text-xs font-medium mb-2">No stickers unlocked yet.</p>
+                                    <p className="text-rose-400 text-[10px] font-black uppercase tracking-widest">Visit the Love Arena!</p>
+                                </div>
+                            ) : (
+                                <div className="grid grid-cols-4 gap-2 max-h-[160px] overflow-y-auto no-scrollbar">
+                                    {myStickers.map(sticker => (
+                                        <button
+                                            key={sticker.id}
+                                            onClick={() => handleSendSticker(sticker.media_url)}
+                                            className="aspect-square bg-white/5 hover:bg-white/10 rounded-2xl flex items-center justify-center text-3xl transition-transform hover:scale-110 border border-white/5"
+                                        >
+                                            {sticker.media_url}
+                                        </button>
+                                    ))}
+                                </div>
+                            )}
+                        </motion.div>
+                    )}
+                </AnimatePresence>
+
                 <AnimatePresence mode="wait">
                     {audioBlob && !isRecording ? (
                         <motion.div key="preview" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, scale: 0.9 }} className="rounded-[32px] p-3 flex items-center justify-between gap-3 bg-zinc-900/90 backdrop-blur-2xl border border-accent/30 shadow-2xl animate-breathing-glow">
@@ -418,7 +502,8 @@ export default function SecureChat() {
                     ) : (
                         <motion.form key="input" onSubmit={handleSend} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="rounded-[32px] p-1.5 flex items-center bg-zinc-900/60 backdrop-blur-3xl border border-white/10 shadow-2xl relative group focus-within:border-accent/30 transition-all mx-1 gap-1 input-focus-glow">
                             <button type="button" onClick={() => setIsDisappearing(!isDisappearing)} className={`p-3 transition-all rounded-2xl ${isDisappearing ? 'text-accent bg-accent-soft' : 'text-white/30 hover:text-white hover:bg-white/5'}`}><Clock size={20} className={isDisappearing ? 'animate-pulse' : ''} /></button>
-                            <input type="text" value={input} onChange={e => setInput(e.target.value)} placeholder={isDisappearing ? 'TIMED MESSAGE...' : 'Whisper something...'} className="flex-1 bg-transparent border-none focus:outline-none text-white px-4 placeholder:text-white/20 text-[16px] font-medium min-w-0" />
+                            <button type="button" onClick={() => setShowStickers(!showStickers)} className={`p-3 transition-all rounded-2xl ${showStickers ? 'text-rose-400 bg-rose-500/20' : 'text-white/30 hover:text-white hover:bg-white/5'}`}><Sticker size={20} /></button>
+                            <input type="text" value={input} onChange={e => setInput(e.target.value)} placeholder={isDisappearing ? 'TIMED MESSAGE...' : 'Whisper something...'} className="flex-1 bg-transparent border-none focus:outline-none text-white px-2 placeholder:text-white/20 text-[16px] font-medium min-w-0" />
                             <div className="flex items-center pr-1">{input.trim() ? (
                                 <motion.button initial={{ scale: 0.8, rotate: -20 }} animate={{ scale: 1, rotate: 0 }} type="submit" className="w-11 h-11 flex items-center justify-center text-white rounded-2xl active:scale-94 shadow-xl transition-all" style={{ background: 'linear-gradient(135deg, var(--accent), var(--accent-secondary))', boxShadow: '0 4px 15px var(--accent-glow)' }}><Send size={18} className="translate-x-0.5" /></motion.button>
                             ) : (
