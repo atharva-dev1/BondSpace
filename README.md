@@ -5,7 +5,7 @@
 <img src="https://img.shields.io/badge/Node.js-18+-green?style=for-the-badge&logo=node.js" alt="Node.js"/>
 <img src="https://img.shields.io/badge/PostgreSQL-blue?style=for-the-badge&logo=postgresql" alt="PostgreSQL"/>
 <img src="https://img.shields.io/badge/Socket.IO-realtime-010101?style=for-the-badge&logo=socket.io" alt="Socket.IO"/>
-<img src="https://img.shields.io/badge/AI%20Powered-SambaNova-purple?style=for-the-badge&logo=openai" alt="AI"/>
+<img src="https://img.shields.io/badge/Love%20Guru-AI%20Powered-ff69b4?style=for-the-badge&logo=sparkles" alt="AI"/>
 <img src="https://img.shields.io/badge/license-MIT-blue?style=for-the-badge" alt="License"/>
 
 # 💖 BondSpace
@@ -28,7 +28,7 @@ BondSpace is not just another messaging app. It's a **complete relationship comp
 - 📍 **Real-time Mutual Location Sharing** with consent controls
 - 🎮 **20+ Relationship Mini-Games** to strengthen your bond
 - 🌳 **Bond Tree** — a living visual timeline of your relationship
-- 🤖 **AI Relationship Guru** powered by Meta LLaMA 3.1 405B
+- 🤖 **Love Guru** — your private AI relationship guide
 - 🏆 **Gamification** — earn XP, level up, unlock rewards
 - 💌 **Digital Love Letters** — time-locked, encrypted, and magical
 - 🖼️ **Shared Gallery** with Cloudinary-powered cloud storage
@@ -110,9 +110,9 @@ BondSpace is not just another messaging app. It's a **complete relationship comp
 </details>
 
 <details>
-<summary>🤖 <strong>AI Guru & Smart Planner</strong></summary>
+<summary>🤖 <strong>Love Guru & Smart Planner</strong></summary>
 
-- 🧠 Powered by **Meta-LLaMA-3.1-405B-Instruct** via SambaNova AI
+- 🧠 **Love Guru** — your personal AI relationship advisor (proprietary engine)
 - 💬 Relationship advice, conflict resolution, love tips
 - 📅 **AI Date Planner** — generates personalized date ideas
 - 📈 **Relationship Health Score** analysis (Communication, Trust, Interaction, Activity, Bond Strength)
@@ -266,7 +266,7 @@ bondspace/
 | **Socket.IO** | Real-time WebSocket communication |
 | **JWT + bcryptjs** | Authentication & password hashing |
 | **Cloudinary** | Media CDN (images, videos, audio) |
-| **SambaNova AI** | LLaMA 3.1 405B for AI Guru |
+| **Love Guru Engine** | Proprietary AI for relationship advice |
 | **Nodemailer** | Email OTP & notifications |
 | **Helmet** | HTTP security headers |
 | **Morgan** | HTTP request logging |
@@ -284,7 +284,7 @@ bondspace/
 - **PostgreSQL** v14+
 - **Redis** v7+
 - A **Cloudinary** account (free tier works)
-- A **SambaNova AI** API key (for AI Guru)
+- A **Love Guru AI** API key (provided on request)
 
 ### 1. Clone the Repository
 
@@ -330,9 +330,8 @@ REDIS_URL=redis://localhost:6379
 # Security
 JWT_SECRET=your_super_secret_jwt_key_min_32_chars
 
-# AI Guru (SambaNova)
-SAMBANOVA_API_KEY=your_sambanova_api_key
-SAMBANOVA_MODEL=Meta-Llama-3.1-405B-Instruct
+# Love Guru AI
+LOVE_GURU_API_KEY=your_love_guru_api_key
 
 # Media Storage (Cloudinary)
 CLOUDINARY_CLOUD_NAME=your_cloud_name
