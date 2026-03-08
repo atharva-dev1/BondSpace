@@ -20,8 +20,9 @@ export default function AuthPage() {
         setLoading(true);
         setError('');
 
+        const endpoint = tab === 'login' ? '/auth/login' : '/auth/register';
+
         try {
-            const endpoint = tab === 'login' ? '/auth/login' : '/auth/register';
             const payload = tab === 'login'
                 ? { email: form.email, password: form.password }
                 : { name: form.name, email: form.email, password: form.password };
@@ -30,7 +31,20 @@ export default function AuthPage() {
             await login(data.token, data.user);
 
         } catch (err: any) {
-            setError(err.response?.data?.error || 'Something went wrong. Try again.');
+            console.error('Login/Register error full object:', err);
+
+            // Show detailed error for debugging on mobile
+            if (err.response) {
+                // Server responded with an error
+                setError(err.response?.data?.error || `Server error: ${err.response.status}`);
+            } else if (err.request) {
+                // Request was made but no response (Network Error)
+                const urlTried = `${API_URL}${endpoint}`;
+                setError(`Network Error: Cannot reach ${urlTried}. Check internet or URL.`);
+            } else {
+                // Something else broke
+                setError(err.message || 'Something went wrong. Try again.');
+            }
         } finally {
             setLoading(false);
         }
