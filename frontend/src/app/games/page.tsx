@@ -117,13 +117,23 @@ export default function GamesPage() {
                 <div className="min-w-0">
                     <Gamepad2 size={24} className="text-accent" />
                 </div>
-                <button
-                    onClick={handleCheckIn}
-                    className="px-4 h-10 text-white text-[10px] font-black uppercase tracking-widest rounded-2xl transition-all shadow-lg active:scale-95 shrink-0"
-                    style={{ background: 'linear-gradient(to right, var(--accent), var(--accent-secondary))', boxShadow: '0 4px 15px var(--accent-glow)' }}
-                >
-                    Check-in
-                </button>
+                {activeSession ? (
+                    <button
+                        onClick={() => setActiveSession(null)}
+                        className="px-4 h-10 text-white text-[10px] font-black uppercase tracking-widest rounded-2xl transition-all shadow-lg active:scale-95 shrink-0 flex items-center gap-2 bg-white/10 border border-white/20 hover:bg-rose-500/20 hover:border-rose-500/30 hover:text-rose-400"
+                    >
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6L6 18M6 6l12 12" /></svg>
+                        Quit Game
+                    </button>
+                ) : (
+                    <button
+                        onClick={handleCheckIn}
+                        className="px-4 h-10 text-white text-[10px] font-black uppercase tracking-widest rounded-2xl transition-all shadow-lg active:scale-95 shrink-0"
+                        style={{ background: 'linear-gradient(to right, var(--accent), var(--accent-secondary))', boxShadow: '0 4px 15px var(--accent-glow)' }}
+                    >
+                        Check-in
+                    </button>
+                )}
             </header>
 
             {/* Active Session View */}
