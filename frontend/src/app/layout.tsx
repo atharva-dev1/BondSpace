@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import BottomNav from "@/components/navigation/BottomNav";
-
 import ThemeWrapper from "@/components/theme/ThemeWrapper";
+import OTABootstrap from "@/components/OTABootstrap";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -11,8 +11,8 @@ export const metadata: Metadata = {
   title: "BondSpace",
   description: "A private digital universe for two people.",
   icons: {
-    icon: "/logo.svg",
-    apple: "/logo.svg",
+    icon: "/icon.png",
+    apple: "/icon.png",
   },
 };
 
@@ -25,6 +25,8 @@ export default function RootLayout({
     <html lang="en" className="dark">
       <body className={`${inter.className} bg-[#080808] text-white selection:bg-rose-500/30 overflow-hidden`}>
         <ThemeWrapper>
+          {/* OTA Auto-Update (runs only in native Capacitor APK) */}
+          <OTABootstrap />
           {/* Wrapper for Desktop Background vs Mobile Center */}
           <div className="fixed inset-0 flex justify-center bg-[#050505] overflow-hidden lg:bg-[url('/desktop-bg.jpeg')] lg:bg-cover lg:bg-center lg:backdrop-blur-3xl">
             {/* Desktop ambient blur overlay */}
