@@ -70,15 +70,18 @@ export default function Home() {
   if (isLoading) {
     return (
       <div className="min-h-screen bg-[#080808] flex items-center justify-center">
-        <div className="flex flex-col items-center gap-4">
+        <div className="flex flex-col items-center gap-6">
           <motion.div
-            animate={{ scale: [1, 1.1, 1] }}
-            transition={{ duration: 1.5, repeat: Infinity }}
-            className="w-16 h-16 rounded-2xl bg-gradient-to-br from-rose-500 to-purple-600 flex items-center justify-center shadow-[0_0_40px_rgba(225,29,72,0.5)]"
+            animate={{ scale: [1, 1.05, 1], opacity: [0.8, 1, 0.8] }}
+            transition={{ duration: 2, repeat: Infinity }}
+            className="w-24 h-24 relative"
           >
-            <Heart size={30} className="text-white fill-white" />
+            <img src="/logo.svg" alt="BondSpace" className="w-full h-full object-contain filter drop-shadow-[0_0_20px_rgba(244,63,94,0.4)]" />
           </motion.div>
-          <Loader2 size={18} className="text-rose-400 animate-spin" />
+          <div className="flex flex-col items-center gap-1">
+            <span className="text-white/20 text-[10px] font-black uppercase tracking-[0.3em]">Igniting Universe</span>
+            <Loader2 size={14} className="text-rose-500/40 animate-spin" />
+          </div>
         </div>
       </div>
     );
@@ -125,9 +128,8 @@ export default function Home() {
             exit={{ opacity: 0 }}
             className="flex-1 flex flex-col items-center justify-center px-6"
           >
-            <div className="w-20 h-20 rounded-3xl bg-accent-soft flex items-center justify-center text-accent mb-8 relative group" style={{ boxShadow: '0 0 30px var(--accent-glow)' }}>
-              <Lock size={32} className="group-hover:scale-110 transition-transform" />
-              <div className="absolute inset-0 rounded-3xl border border-accent/20 animate-pulse" />
+            <div className="w-24 h-24 mb-8 relative group">
+              <img src="/logo.svg" alt="Locked" className="w-full h-full object-contain filter drop-shadow-[0_0_30px_rgba(244,63,94,0.3)] group-hover:scale-110 transition-transform duration-500" />
             </div>
             <h3 className="text-3xl font-black text-white tracking-tighter mb-2">Space Locked</h3>
             <p className="text-white/40 text-sm text-center mb-10 max-w-[240px] leading-relaxed">Enter your mutual passcode to reveal your private universe.</p>

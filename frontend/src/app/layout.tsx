@@ -10,6 +10,10 @@ const inter = Inter({ subsets: ["latin"] });
 export const metadata: Metadata = {
   title: "BondSpace 💖",
   description: "A private digital universe for two people.",
+  icons: {
+    icon: "/logo.svg",
+    apple: "/logo.svg",
+  },
 };
 
 export default function RootLayout({

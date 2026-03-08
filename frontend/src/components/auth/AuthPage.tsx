@@ -51,11 +51,11 @@ export default function AuthPage() {
                 animate={{ opacity: 1, y: 0 }}
                 className="mb-10 flex flex-col items-center"
             >
-                <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-rose-500 to-purple-600 flex items-center justify-center shadow-[0_0_40px_rgba(225,29,72,0.5)] mb-4">
-                    <Heart size={30} className="text-white fill-white" />
+                <div className="w-20 h-20 mb-4 relative">
+                    <img src="/logo.svg" alt="BondSpace Logo" className="w-full h-full object-contain filter drop-shadow-[0_0_20px_rgba(244,63,94,0.5)]" />
                 </div>
-                <h1 className="text-3xl font-black text-white tracking-tight">BondSpace</h1>
-                <p className="text-gray-500 text-sm mt-1 font-medium">A private universe for two.</p>
+                <h1 className="text-4xl font-black text-white tracking-tighter">BondSpace</h1>
+                <p className="text-white/40 text-sm mt-1 font-medium tracking-wide">A private universe for two.</p>
             </motion.div>
 
             {/* Card */}

@@ -84,17 +84,11 @@ export default function ConnectPartner() {
                 {/* Header */}
                 <div className="text-center mb-10">
                     <div className="relative w-24 h-24 mx-auto mb-6">
-                        <div className="w-24 h-24 rounded-3xl flex items-center justify-center shadow-lg"
-                            style={{
-                                background: 'linear-gradient(135deg, var(--accent), var(--accent-secondary))',
-                                boxShadow: '0 0 50px var(--accent-glow)'
-                            }}>
-                            <Heart size={40} className="text-white fill-white" />
-                        </div>
+                        <img src="/logo.svg" alt="BondSpace" className="w-full h-full object-contain filter drop-shadow-[0_0_30px_rgba(244,63,94,0.4)]" />
                         <motion.div
                             animate={{ scale: [1, 1.2, 1] }}
                             transition={{ duration: 2, repeat: Infinity }}
-                            className="absolute inset-0 rounded-3xl opacity-30 blur-xl"
+                            className="absolute inset-0 rounded-3xl opacity-20 blur-2xl z-[-1]"
                             style={{ background: 'linear-gradient(135deg, var(--accent), var(--accent-secondary))' }}
                         />
                     </div>

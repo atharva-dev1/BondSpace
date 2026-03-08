@@ -75,13 +75,11 @@ export default function PendingBond() {
                     <>
                         {/* Received request */}
                         <div className="relative w-24 h-24 mx-auto mb-8">
-                            <div className="w-24 h-24 rounded-3xl bg-gradient-to-br from-rose-500 to-purple-600 flex items-center justify-center shadow-[0_0_50px_rgba(225,29,72,0.5)]">
-                                <Heart size={40} className="text-white fill-white" />
-                            </div>
+                            <img src="/logo.svg" alt="Bond Request" className="w-full h-full object-contain filter drop-shadow-[0_0_30px_rgba(244,63,94,0.4)]" />
                             <motion.div
                                 animate={{ scale: [1, 1.2, 1] }}
                                 transition={{ duration: 1.5, repeat: Infinity }}
-                                className="absolute inset-0 rounded-3xl bg-gradient-to-br from-rose-500 to-purple-600 opacity-20 blur-xl"
+                                className="absolute inset-0 rounded-3xl bg-rose-500 opacity-10 blur-2xl z-[-1]"
                             />
                         </div>
 
