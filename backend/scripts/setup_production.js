@@ -52,6 +52,11 @@ async function setup() {
         const migrateEternalWall = require('./migrate_eternal_wall');
         await migrateEternalWall(pool);
 
+        // 4.8. Run Time Capsule Migration
+        logger.info('Running time capsule migration...');
+        const migrateTimeCapsule = require('./migrate_time_capsule');
+        await migrateTimeCapsule(pool);
+
         // 5. Seed Games
         logger.info('Seeding 20+ games...');
         const seedGames = require('./seed_games_20_logic');

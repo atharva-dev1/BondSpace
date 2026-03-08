@@ -136,7 +136,7 @@ app.get('/api/gamification/unlockables/:user_id', gamificationRoutes.getUnlockab
 
 // Love Letters
 app.post('/api/letters', letterRoutes.writeLetter);
-app.get('/api/letters/ready', letterRoutes.getReadyLetters);
+app.get('/api/letters', letterRoutes.getAllLetters);
 app.post('/api/letters/:id/open', letterRoutes.openLetter);
 
 // Health Score

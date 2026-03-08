@@ -6,40 +6,61 @@ const nodeCron = require('node-cron');
 // POST /api/letters — Write a love letter to the future
 const writeLetter = async (req, res) => {
     try {
-        const { to_user, couple_id, content, open_trigger, open_at } = req.body;
+        const { to_user, couple_id, content, open_trigger, open_at, media_url } = req.body;
         const { encryptedMessage, nonce } = encryptMessage(content);
 
         const result = await query(
-            `INSERT INTO love_letters (id, from_user, to_user, couple_id, content, is_encrypted, open_trigger, open_at)
-       VALUES ($1,$2,$3,$4,$5,$6,$7,$8) RETURNING *`,
-            [uuidv4(), req.user.id, to_user, couple_id, encryptedMessage, true, open_trigger, new Date(open_at)]
+            `INSERT INTO love_letters (id, from_user, to_user, couple_id, content, is_encrypted, open_trigger, open_at, nonce, media_url)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10) RETURNING *`,
+            [uuidv4(), req.user.id, to_user, couple_id, encryptedMessage, true, open_trigger, new Date(open_at), nonce, media_url]
         );
 
         res.status(201).json({ letter: result.rows[0], message: '💌 Love letter sealed! It will open on the right day.' });
     } catch (err) {
+        console.error('writeLetter error:', err);
         res.status(500).json({ error: 'Failed to write love letter' });
     }
 };
 
-// GET /api/letters/ready — Get letters that are ready to be opened
-const getReadyLetters = async (req, res) => {
+// GET /api/letters — Get all letters (sent and received) for the user context
+const getAllLetters = async (req, res) => {
     try {
         const userId = req.user.id;
         const result = await query(
-            `SELECT ll.*, u.name as from_name, u.avatar as from_avatar
-       FROM love_letters ll JOIN users u ON ll.from_user = u.id
-       WHERE ll.to_user=$1 AND ll.open_at <= NOW() AND ll.is_opened=false`,
+            `SELECT ll.*, 
+                u_from.name as from_name, u_from.avatar as from_avatar,
+                u_to.name as to_name, u_to.avatar as to_avatar
+             FROM love_letters ll 
+             JOIN users u_from ON ll.from_user = u_from.id
+             JOIN users u_to ON ll.to_user = u_to.id
+             WHERE ll.from_user = $1 OR ll.to_user = $1
+             ORDER BY ll.created_at DESC`,
             [userId]
         );
 
-        const letters = result.rows.map(letter => ({
-            ...letter,
-            content: letter.is_encrypted ? decryptMessage(letter.content, letter.nonce || '') : letter.content,
-        }));
+        const letters = result.rows.map(letter => {
+            const isTarget = letter.to_user === userId;
+            const canOpen = new Date(letter.open_at) <= new Date();
+
+            // Decrypt only if the current user is the recipient AND it's openable/opened
+            let displayContent = '[Sealed]';
+            if (letter.from_user === userId || (isTarget && canOpen)) {
+                displayContent = letter.is_encrypted
+                    ? decryptMessage(letter.content, letter.nonce || '')
+                    : letter.content;
+            }
+
+            return {
+                ...letter,
+                content: displayContent,
+                is_openable: canOpen && !letter.is_opened && isTarget
+            };
+        });
 
         res.json({ letters });
     } catch (err) {
-        res.status(500).json({ error: 'Failed to get letters' });
+        console.error('getAllLetters error:', err);
+        res.status(500).json({ error: 'Failed to get letters history' });
     }
 };
 
@@ -47,10 +68,10 @@ const getReadyLetters = async (req, res) => {
 const openLetter = async (req, res) => {
     try {
         const result = await query(
-            'UPDATE love_letters SET is_opened=true, opened_at=NOW() WHERE id=$1 AND to_user=$2 RETURNING *',
+            'UPDATE love_letters SET is_opened=true, opened_at=NOW() WHERE id=$1 AND to_user=$2 AND open_at <= NOW() RETURNING *',
             [req.params.id, req.user.id]
         );
-        if (!result.rows[0]) return res.status(404).json({ error: 'Letter not found' });
+        if (!result.rows[0]) return res.status(404).json({ error: 'Letter not found or not yet openable' });
 
         const letter = result.rows[0];
         const content = letter.is_encrypted ? decryptMessage(letter.content, letter.nonce || '') : letter.content;
@@ -83,4 +104,4 @@ const startLetterCron = (io) => {
     console.log('💌 Love letter cron started');
 };
 
-module.exports = { writeLetter, getReadyLetters, openLetter, startLetterCron };
+module.exports = { writeLetter, getAllLetters, openLetter, startLetterCron };

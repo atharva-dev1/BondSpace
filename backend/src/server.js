@@ -26,6 +26,7 @@ const { pool } = require('./config/database');
 const migrateUserProfile = require('../scripts/migrate_user_profile_fields');
 const migrateMood = require('../scripts/migrate_mood_fields');
 const migrateEternalWall = require('../scripts/migrate_eternal_wall');
+const migrateTimeCapsule = require('../scripts/migrate_time_capsule');
 
 // Auto-run lightweight migrations
 (async () => {
@@ -33,6 +34,7 @@ const migrateEternalWall = require('../scripts/migrate_eternal_wall');
         await migrateUserProfile(pool);
         await migrateMood(pool);
         await migrateEternalWall(pool);
+        await migrateTimeCapsule(pool);
     } catch (err) {
         console.error('Auto-migration failed', err);
     }

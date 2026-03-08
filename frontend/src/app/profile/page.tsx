@@ -197,6 +197,13 @@ export default function ProfilePage() {
                         <span className="text-white font-bold text-sm">Love Arena</span>
                         <span className="text-[10px] text-gray-500 mt-1">Unlock rewards</span>
                     </Link>
+                    <Link href="/letters" className="grid grid-cols-1 col-span-2 glass p-5 rounded-3xl border-white/5 bg-gradient-to-br from-emerald-900/40 to-black/40 flex flex-col items-center text-center group">
+                        <div className="w-12 h-12 bg-emerald-500/20 rounded-2xl flex items-center justify-center text-emerald-400 mb-3 group-hover:scale-110 transition-transform">
+                            <CalendarHeart size={24} />
+                        </div>
+                        <span className="text-white font-bold text-sm">Time Capsule</span>
+                        <span className="text-[10px] text-gray-500 mt-1">Send messages to the future</span>
+                    </Link>
                 </div>
             </div>
 
