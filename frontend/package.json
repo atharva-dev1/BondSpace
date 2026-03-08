@@ -10,7 +10,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "build:mobile": "cross-env MOBILE_BUILD=true next build",
+    "build:mobile": "cross-env MOBILE_BUILD=true node -e \"const fs=require('fs'); ['src/app/join/[code]/page.tsx', 'src/app/gallery/[id]/page.tsx'].forEach(f => fs.writeFileSync(f, fs.readFileSync(f, 'utf8').replace(/\\/\\/ STATIC_EXPORT /g, '')))\" && next build",
     "cap:sync": "npm run build:mobile && npx cap sync android",
     "cap:android": "npx cap open android",
     "cap:build-apk": "npm run build:mobile && npx cap sync android && cd android && .\\gradlew assembleDebug"

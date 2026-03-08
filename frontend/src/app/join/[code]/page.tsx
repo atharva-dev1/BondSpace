@@ -3,8 +3,8 @@
 import JoinClient from './JoinClient';
 
 // Force Next.js to treat this as a static page with client-side data ONLY for mobile builds
-export const dynamic = process.env.MOBILE_BUILD === 'true' ? 'force-static' : 'auto';
-export const dynamicParams = process.env.MOBILE_BUILD === 'true' ? false : true;
+// STATIC_EXPORT export const dynamic = 'force-static';
+// STATIC_EXPORT export const dynamicParams = false;
 
 // Next.js static export needs at least one path to generate a static HTML file
 // We give it a dummy 'code' so it generates /join/default/index.html
