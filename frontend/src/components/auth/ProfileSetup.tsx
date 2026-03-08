@@ -68,7 +68,7 @@ export default function ProfileSetup({ onDone }: { onDone: () => void }) {
                 <div className="absolute bottom-[-15%] left-[5%] w-[400px] h-[400px] bg-rose-600/15 rounded-full blur-[110px]" />
             </div>
 
-            <div className="flex-1 flex flex-col max-w-sm mx-auto w-full px-6 pt-10 pb-6 relative z-10 overflow-hidden">
+            <div className="flex-1 flex flex-col max-w-sm mx-auto w-full px-6 pt-10 pb-16 relative z-10 overflow-hidden">
                 {/* Step indicators */}
                 <div className="flex gap-2 mb-8 shrink-0">
                     {steps.map((s, i) => (

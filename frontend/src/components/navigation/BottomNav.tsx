@@ -7,11 +7,11 @@ import { MessageCircle, MapPin, Gamepad2, Users, Images, User, Palette } from 'l
 import Link from 'next/link';
 
 export default function BottomNav() {
-    const { isAuthenticated, bond } = useStore();
+    // Only show the navigation if the user is authenticated, fully bonded, and profile is complete
+    const { user, isAuthenticated, bond } = useStore();
     const pathname = usePathname();
 
-    // Only show the navigation if the user is authenticated and fully bonded
-    if (!isAuthenticated || !bond || bond.status !== 'bonded') return null;
+    if (!isAuthenticated || !user?.profile_complete || !bond || bond.status !== 'bonded') return null;
 
     const navItems = [
         { path: '/', label: 'Chat', icon: <MessageCircle size={24} /> },
