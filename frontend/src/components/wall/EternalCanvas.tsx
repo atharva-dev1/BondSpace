@@ -178,7 +178,7 @@ export default function EternalCanvas() {
     return (
         <div className="flex-1 flex flex-col relative h-full overflow-hidden bg-[#080808]">
             {/* Toolbar */}
-            <div className="absolute top-4 left-1/2 -translate-x-1/2 z-30 flex items-center gap-1 px-2 py-2 bg-black/60 backdrop-blur-3xl border border-white/10 rounded-2xl shadow-2xl max-w-[calc(100vw-2rem)] overflow-x-auto no-scrollbar">
+            <div className="absolute top-20 left-1/2 -translate-x-1/2 z-30 flex items-center gap-1 px-2 py-2 bg-black/60 backdrop-blur-3xl border border-white/10 rounded-2xl shadow-2xl max-w-[calc(100vw-2rem)] overflow-x-auto no-scrollbar">
                 <ToolButton
                     active={tool === 'select'}
                     onClick={() => switchTool('select')}
