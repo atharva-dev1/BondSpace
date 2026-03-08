@@ -61,16 +61,16 @@ export default function ProfileSetup({ onDone }: { onDone: () => void }) {
     }, [step, form]);
 
     return (
-        <div className="min-h-screen bg-[#080808] flex flex-col relative overflow-hidden">
+        <div className="h-[100dvh] bg-[#080808] flex flex-col relative overflow-hidden">
             {/* bg blobs */}
             <div className="pointer-events-none absolute inset-0 overflow-hidden">
                 <div className="absolute top-[-10%] right-[15%] w-[500px] h-[500px] bg-purple-700/15 rounded-full blur-[130px]" />
                 <div className="absolute bottom-[-15%] left-[5%] w-[400px] h-[400px] bg-rose-600/15 rounded-full blur-[110px]" />
             </div>
 
-            <div className="flex-1 flex flex-col max-w-sm mx-auto w-full px-6 py-10 relative z-10">
+            <div className="flex-1 flex flex-col max-w-sm mx-auto w-full px-6 pt-10 pb-6 relative z-10 overflow-hidden">
                 {/* Step indicators */}
-                <div className="flex gap-2 mb-10">
+                <div className="flex gap-2 mb-8 shrink-0">
                     {steps.map((s, i) => (
                         <div key={s} className={`h-1 flex-1 rounded-full transition-all duration-500 ${i <= stepIdx ? 'bg-gradient-to-r from-rose-500 to-purple-500' : 'bg-white/10'}`} />
                     ))}
@@ -89,16 +89,16 @@ export default function ProfileSetup({ onDone }: { onDone: () => void }) {
                             {/* Preview */}
                             <div className="text-7xl text-center mb-6 shrink-0">{form.avatar}</div>
 
-                            <div className="grid grid-cols-5 gap-3 overflow-y-auto pb-6 no-scrollbar">
+                            <div className="flex-1 grid grid-cols-5 gap-3 overflow-y-auto pb-4 no-scrollbar min-h-0">
                                 {AVATARS.map(emoji => (
                                     <button
                                         key={emoji}
                                         onClick={() => setForm(f => ({ ...f, avatar: emoji }))}
                                         className={`aspect-square rounded-2xl text-2xl flex items-center justify-center transition-all duration-300 ${form.avatar === emoji
-                                            ? 'bg-accent-soft border-2 border-accent scale-110'
+                                            ? 'bg-rose-500/20 border-2 border-rose-500 scale-110'
                                             : 'bg-white/5 border border-white/10 hover:bg-white/10 active:scale-95'
                                             }`}
-                                        style={form.avatar === emoji ? { boxShadow: '0 0 20px var(--accent-glow)' } : {}}
+                                        style={form.avatar === emoji ? { boxShadow: '0 0 20px rgba(244, 63, 94, 0.4)' } : {}}
                                     >
                                         {emoji}
                                     </button>
