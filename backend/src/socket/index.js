@@ -143,6 +143,24 @@ const initializeSocket = (server) => {
         });
 
         // ==========================================
+        // 😊 MOOD EVENTS
+        // ==========================================
+        socket.on('update_mood', async (mood) => {
+            if (!socket.userId) return;
+            try {
+                await query(
+                    'UPDATE users SET current_mood = $1, mood_updated_at = NOW() WHERE id = $2',
+                    [mood, socket.userId]
+                );
+                if (socket.coupleId) {
+                    socket.to(socket.coupleId).emit('partner_mood_update', { userId: socket.userId, mood });
+                }
+            } catch (err) {
+                console.error('Socket update_mood error:', err);
+            }
+        });
+
+        // ==========================================
         // 🎮 GAME EVENTS
         // ==========================================
         socket.on('game_move', (data) => {

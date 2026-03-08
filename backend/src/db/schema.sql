@@ -19,6 +19,8 @@ CREATE TABLE IF NOT EXISTS users (
   timezone VARCHAR(100) DEFAULT 'Asia/Kolkata',
   is_verified BOOLEAN DEFAULT FALSE,
   otp_secret VARCHAR(100),
+  current_mood VARCHAR(50),
+  mood_updated_at TIMESTAMP,
   created_at TIMESTAMP DEFAULT NOW(),
   updated_at TIMESTAMP DEFAULT NOW()
 );

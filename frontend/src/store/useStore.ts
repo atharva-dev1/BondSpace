@@ -14,6 +14,7 @@ interface User {
     bio: string | null;
     profile_complete: boolean;
     love_xp: number;
+    current_mood?: string;
 }
 
 interface Bond {
@@ -29,6 +30,8 @@ interface Bond {
     connected_at?: string;
     location_sharing_user1: boolean;
     location_sharing_user2: boolean;
+    user1_mood?: string;
+    user2_mood?: string;
 }
 
 interface StoreState {
@@ -40,6 +43,7 @@ interface StoreState {
     isLoading: boolean;
     isLocked: boolean;
     encryptionKey: Uint8Array | null;
+    partnerMood: string | null;
 
     // Actions
     login: (token: string, user: User) => Promise<void>;
@@ -50,6 +54,7 @@ interface StoreState {
     updateUser: (data: Partial<User>) => void;
     unlockChat: (key: Uint8Array) => void;
     lockChat: () => void;
+    updateMood: (mood: string) => void;
 }
 
 export const useStore = create<StoreState>((set, get) => ({
@@ -61,6 +66,7 @@ export const useStore = create<StoreState>((set, get) => ({
     isLoading: true,
     isLocked: true, // Default to locked
     encryptionKey: null,
+    partnerMood: null,
 
     login: async (token, user) => {
         localStorage.setItem('bondspace_token', token);
@@ -104,6 +110,10 @@ export const useStore = create<StoreState>((set, get) => ({
             // If disconnected due to server-side issues, it will auto-reconnect
         });
 
+        newSocket.on('partner_mood_update', ({ mood }: { mood: string }) => {
+            set({ partnerMood: mood });
+        });
+
         set({ socket: newSocket });
     },
 
@@ -123,11 +133,15 @@ export const useStore = create<StoreState>((set, get) => ({
                 headers: { Authorization: `Bearer ${token}` }
             });
 
+            const bond = bondRes.data.bond;
+            const pMood = bond?.user1_id === data.user.id ? bond?.user2_mood : bond?.user1_mood;
+
             set({
                 user: data.user,
                 isAuthenticated: true,
                 isLoading: false,
-                bond: bondRes.data.bond
+                bond: bond,
+                partnerMood: pMood || null
             });
             get().initializeSocket();
         } catch (err) {
@@ -143,5 +157,11 @@ export const useStore = create<StoreState>((set, get) => ({
     },
 
     unlockChat: (key) => set({ isLocked: false, encryptionKey: key }),
-    lockChat: () => set({ isLocked: true, encryptionKey: null })
+    lockChat: () => set({ isLocked: true, encryptionKey: null }),
+
+    updateMood: (mood) => {
+        const { socket, user } = get();
+        if (socket) socket.emit('update_mood', mood);
+        if (user) set({ user: { ...user, current_mood: mood } });
+    }
 }));

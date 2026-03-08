@@ -29,6 +29,12 @@ export default function RootLayout({
             <div className="w-full h-[100dvh] max-w-md mx-auto relative shadow-[0_0_100px_rgba(0,0,0,0.5)] bg-[#080808] overflow-hidden flex flex-col">
               {/* Background ambient glow effect restricted to container */}
               <div className="absolute inset-0 overflow-hidden pointer-events-none z-[-1]">
+                {/* Partner Mood Aura (Central Pulsating Glow) */}
+                <div
+                  className="absolute inset-[-20%] rounded-full blur-[160px] transition-all duration-1000 opacity-60 mix-blend-screen animate-pulse"
+                  style={{ backgroundColor: 'var(--partner-aura)' }}
+                />
+
                 <div className="absolute top-[-25%] left-[-20%] w-[140%] h-[60%] rounded-full blur-[140px] transition-colors duration-1000" style={{ backgroundColor: 'var(--bg-glow-1)' }} />
                 <div className="absolute bottom-[-25%] right-[-20%] w-[140%] h-[60%] rounded-full blur-[140px] transition-colors duration-1000" style={{ backgroundColor: 'var(--bg-glow-2)' }} />
               </div>

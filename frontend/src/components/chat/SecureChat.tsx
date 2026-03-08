@@ -5,8 +5,18 @@ import { useStore } from '@/store/useStore';
 import { API_URL } from '@/lib/utils';
 import axios from 'axios';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Send, Pin, Clock, Mic, MicOff, Square, Play, Pause, Paperclip, Heart } from 'lucide-react';
+import { Send, Pin, Clock, Mic, MicOff, Square, Play, Pause, Paperclip, Heart, Smile } from 'lucide-react';
 import { encryptMessage, decryptMessage } from '@/lib/encryption';
+import MoodSelector from './MoodSelector';
+
+const moodIcons: Record<string, string> = {
+    romantic: '❤️',
+    excited: '⚡',
+    calm: '🌙',
+    sad: '☁️',
+    spicy: '🔥',
+    tired: '💤',
+};
 
 interface Message {
     id: string;
@@ -21,11 +31,12 @@ interface Message {
 }
 
 export default function SecureChat() {
-    const { user, token, bond, socket, encryptionKey, isLocked, lockChat } = useStore();
+    const { user, token, bond, socket, encryptionKey, isLocked, lockChat, partnerMood } = useStore();
     const [messages, setMessages] = useState<Message[]>([]);
     const [input, setInput] = useState('');
     const [isDisappearing, setIsDisappearing] = useState(false);
     const [loading, setLoading] = useState(true);
+    const [showMoodSelector, setShowMoodSelector] = useState(false);
     const bottomRef = useRef<HTMLDivElement>(null);
 
     // Voice note state
@@ -277,20 +288,41 @@ export default function SecureChat() {
                             <div className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 bg-emerald-500 rounded-full border-2 border-black shadow-glow" />
                         </div>
                         <div>
-                            <h3 className="font-bold text-white text-[15px] leading-none uppercase tracking-tight">
+                            <h3 className="font-bold text-white text-[15px] leading-none uppercase tracking-tight flex items-center gap-2">
                                 {partnerName || 'Partner'}
+                                {partnerMood && (
+                                    <motion.span
+                                        initial={{ scale: 0 }}
+                                        animate={{ scale: 1 }}
+                                        className="text-sm filter drop-shadow-[0_0_8px_rgba(255,255,255,0.4)]"
+                                    >
+                                        {moodIcons[partnerMood.toLowerCase()] || ''}
+                                    </motion.span>
+                                )}
                             </h3>
                             <div className="flex items-center gap-1.5 mt-1.5">
-                                <span className="text-[10px] text-emerald-400 font-black uppercase tracking-widest">Active Now</span>
+                                <span className="text-[10px] text-emerald-400 font-black uppercase tracking-widest">{partnerMood ? partnerMood : 'Active Now'}</span>
                             </div>
                         </div>
                     </div>
-                    <button
-                        onClick={() => !isLocked && lockChat()}
-                        className="w-11 h-11 rounded-2xl bg-white/5 hover:bg-rose-500/20 hover:text-rose-400 text-gray-400 flex items-center justify-center transition-all active:scale-90 border border-white/5"
-                    >
-                        <Heart size={20} className={!isLocked ? 'fill-none' : 'fill-rose-500 text-rose-500'} />
-                    </button>
+                    <div className="flex items-center gap-2">
+                        <button
+                            onClick={() => setShowMoodSelector(true)}
+                            className={`w-11 h-11 rounded-2xl flex items-center justify-center transition-all bg-white/5 hover:bg-white/10 border border-white/10 ${user?.current_mood ? 'ring-2 ring-emerald-500/20' : ''}`}
+                        >
+                            {user?.current_mood ? (
+                                <span className="text-xl">{moodIcons[user.current_mood] || '😊'}</span>
+                            ) : (
+                                <Smile size={20} className="text-gray-400" />
+                            )}
+                        </button>
+                        <button
+                            onClick={() => !isLocked && lockChat()}
+                            className="w-11 h-11 rounded-2xl bg-white/5 hover:bg-rose-500/20 hover:text-rose-400 text-gray-400 flex items-center justify-center transition-all active:scale-90 border border-white/5"
+                        >
+                            <Heart size={20} className={!isLocked ? 'fill-none' : 'fill-rose-500 text-rose-500'} />
+                        </button>
+                    </div>
                 </div>
             </header>
 
@@ -382,6 +414,12 @@ export default function SecureChat() {
                     )}
                 </AnimatePresence>
             </div>
+
+            <AnimatePresence>
+                {showMoodSelector && (
+                    <MoodSelector onClose={() => setShowMoodSelector(false)} />
+                )}
+            </AnimatePresence>
         </div>
     );
 }

@@ -156,8 +156,8 @@ const getMyBond = async (req, res) => {
         const userId = req.user.id;
         const result = await query(
             `SELECT c.*, 
-        u1.name as user1_name, u1.avatar as user1_avatar,
-        u2.name as user2_name, u2.avatar as user2_avatar
+        u1.name as user1_name, u1.avatar as user1_avatar, u1.current_mood as user1_mood,
+        u2.name as user2_name, u2.avatar as user2_avatar, u2.current_mood as user2_mood
        FROM couples c
        JOIN users u1 ON c.user1_id = u1.id
        JOIN users u2 ON c.user2_id = u2.id

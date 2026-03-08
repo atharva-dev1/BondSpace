@@ -65,7 +65,7 @@ const login = async (req, res) => {
 const getMe = async (req, res) => {
     try {
         const result = await query(
-            'SELECT id, name, username, email, phone, avatar, bio, gender, love_language, timezone, is_verified, profile_complete, created_at FROM users WHERE id = $1',
+            'SELECT id, name, username, email, phone, avatar, bio, gender, love_language, timezone, is_verified, profile_complete, current_mood, created_at FROM users WHERE id = $1',
             [req.user.id]
         );
         res.json({ user: result.rows[0] });
