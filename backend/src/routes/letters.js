@@ -2,6 +2,7 @@ const { query } = require('../config/database');
 const { v4: uuidv4 } = require('uuid');
 const { encryptMessage, decryptMessage } = require('../services/encryptionService');
 const nodeCron = require('node-cron');
+const { updateChallengeProgress } = require('./gamification');
 
 // POST /api/letters — Write a love letter to the future
 const writeLetter = async (req, res) => {
@@ -14,6 +15,9 @@ const writeLetter = async (req, res) => {
        VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10) RETURNING *`,
             [uuidv4(), req.user.id, to_user, couple_id, encryptedMessage, true, open_trigger, new Date(open_at), nonce, media_url]
         );
+
+        // Phase 20: Daily Challenge Progress (Letter)
+        updateChallengeProgress(req.user.id, 'letter');
 
         res.status(201).json({ letter: result.rows[0], message: '💌 Love letter sealed! It will open on the right day.' });
     } catch (err) {

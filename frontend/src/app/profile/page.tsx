@@ -4,7 +4,7 @@ import { useStore } from '@/store/useStore';
 import { API_URL } from '@/lib/utils';
 import axios from 'axios';
 import { useState, useEffect } from 'react';
-import { HeartPulse, LogOut, Settings, Award, CalendarHeart, ShieldCheck, HeartCrack, AlertTriangle, Wand2, ShoppingBag } from 'lucide-react';
+import { HeartPulse, LogOut, Settings, Award, CalendarHeart, ShieldCheck, HeartCrack, AlertTriangle, Wand2, ShoppingBag, Trophy } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
@@ -183,6 +183,13 @@ export default function ProfilePage() {
             <div className="shrink-0 mx-4 mt-6">
                 <h3 className="text-sm font-black text-gray-600 tracking-widest uppercase ml-1 mb-4">Discovery & Tools</h3>
                 <div className="grid grid-cols-2 gap-3">
+                    <Link href="/arena" className="glass p-5 rounded-3xl border-white/5 bg-gradient-to-br from-amber-600/20 to-black/40 flex flex-col items-center text-center group">
+                        <div className="w-12 h-12 bg-amber-500/20 rounded-2xl flex items-center justify-center text-amber-500 mb-3 group-hover:scale-110 transition-transform">
+                            <Trophy size={24} />
+                        </div>
+                        <span className="text-white font-bold text-sm">Arena Hub</span>
+                        <span className="text-[10px] text-gray-500 mt-1">Challenges & Badges</span>
+                    </Link>
                     <Link href="/planner" className="glass p-5 rounded-3xl border-white/5 bg-gradient-to-br from-purple-900/40 to-black/40 flex flex-col items-center text-center group">
                         <div className="w-12 h-12 bg-purple-500/20 rounded-2xl flex items-center justify-center text-purple-400 mb-3 group-hover:scale-110 transition-transform">
                             <Wand2 size={24} />
@@ -194,15 +201,15 @@ export default function ProfilePage() {
                         <div className="w-12 h-12 bg-rose-500/20 rounded-2xl flex items-center justify-center text-rose-400 mb-3 group-hover:scale-110 transition-transform">
                             <ShoppingBag size={24} />
                         </div>
-                        <span className="text-white font-bold text-sm">Love Arena</span>
-                        <span className="text-[10px] text-gray-500 mt-1">Unlock rewards</span>
+                        <span className="text-white font-bold text-sm">Point Store</span>
+                        <span className="text-[10px] text-gray-500 mt-1">Unlock stickers</span>
                     </Link>
-                    <Link href="/letters" className="grid grid-cols-1 col-span-2 glass p-5 rounded-3xl border-white/5 bg-gradient-to-br from-emerald-900/40 to-black/40 flex flex-col items-center text-center group">
+                    <Link href="/letters" className="glass p-5 rounded-3xl border-white/5 bg-gradient-to-br from-emerald-900/40 to-black/40 flex flex-col items-center text-center group">
                         <div className="w-12 h-12 bg-emerald-500/20 rounded-2xl flex items-center justify-center text-emerald-400 mb-3 group-hover:scale-110 transition-transform">
                             <CalendarHeart size={24} />
                         </div>
                         <span className="text-white font-bold text-sm">Time Capsule</span>
-                        <span className="text-[10px] text-gray-500 mt-1">Send messages to the future</span>
+                        <span className="text-[10px] text-gray-500 mt-1">Future letters</span>
                     </Link>
                 </div>
             </div>

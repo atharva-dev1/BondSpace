@@ -48,8 +48,8 @@ export default function StorePage() {
 
     const handlePurchase = async (item: StoreItem) => {
         if (inventory.includes(item.id)) return;
-        if ((user?.love_xp || 0) < item.price) {
-            alert("Not enough Love XP! ❤️ Play games to earn more.");
+        if ((user?.points || 0) < item.price) {
+            alert("Not enough Love Points! ❤️ Complete daily challenges to earn more.");
             return;
         }
 
@@ -88,10 +88,10 @@ export default function StorePage() {
                     </Link>
                 </div>
                 <div className="bg-white/5 border border-white/10 px-3 py-1.5 rounded-2xl flex items-center gap-2">
-                    <div className="w-5 h-5 rounded-full flex items-center justify-center" style={{ background: 'var(--accent)' }}>
+                    <div className="w-5 h-5 rounded-full flex items-center justify-center bg-rose-500 shadow-[0_0_10px_rgba(244,63,94,0.4)]">
                         <Heart size={12} className="text-white fill-white" />
                     </div>
-                    <span className="text-white font-black text-xs tracking-tighter">{user?.love_xp || 0}</span>
+                    <span className="text-white font-black text-xs tracking-tighter">{user?.points || 0}</span>
                 </div>
             </header>
 

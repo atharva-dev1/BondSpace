@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { query } = require('../config/database');
-const { protect } = require('../middleware/auth');
+const protect = require('../middleware/auth');
 
 // Get all elements for the couple's wall
 router.get('/', protect, async (req, res) => {

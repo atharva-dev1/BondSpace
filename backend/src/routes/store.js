@@ -28,11 +28,12 @@ const purchaseItem = async (req, res) => {
         if (itemRes.rows.length === 0) return res.status(404).json({ error: 'Item not found' });
         const item = itemRes.rows[0];
 
-        const userRes = await query('SELECT love_xp FROM users WHERE id=$1', [user_id]);
-        const userXP = userRes.rows[0].love_xp;
+        const pointsRes = await query('SELECT amount FROM points WHERE user_id=$1', [user_id]);
+        if (pointsRes.rows.length === 0) return res.status(400).json({ error: 'No points record found. Play games to earn points! ❤️' });
+        const userPoints = pointsRes.rows[0].amount;
 
-        if (userXP < item.price) {
-            return res.status(400).json({ error: 'Not enough Love XP! Play more games to earn points. ❤️' });
+        if (userPoints < item.price) {
+            return res.status(400).json({ error: 'Not enough Love Points! Buy more via daily challenges. ❤️' });
         }
 
         // 2. Add to inventory and deduct points
@@ -41,7 +42,7 @@ const purchaseItem = async (req, res) => {
             'INSERT INTO user_inventory (user_id, item_id) VALUES ($1, $2) ON CONFLICT DO NOTHING',
             [user_id, item_id]
         );
-        await query('UPDATE users SET love_xp = love_xp - $1 WHERE id=$2', [item.price, user_id]);
+        await query('UPDATE points SET amount = amount - $1 WHERE user_id=$2', [item.price, user_id]);
         await query('COMMIT');
 
         res.json({ message: `Successfully unlocked ${item.name}! 🔓`, price: item.price });

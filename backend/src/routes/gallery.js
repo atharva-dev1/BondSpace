@@ -1,6 +1,7 @@
 const { query } = require('../config/database');
 const { v4: uuidv4 } = require('uuid');
 const cloudinary = require('../config/cloudinary');
+const { updateChallengeProgress } = require('./gamification');
 const multer = require('multer');
 
 // Multer memory storage for Cloudinary uploads
@@ -88,6 +89,9 @@ const uploadMedia = async (req, res) => {
 
         // Update album cover if not set
         await query(`UPDATE gallery_albums SET cover_url=$1 WHERE id=$2 AND cover_url IS NULL`, [result.secure_url, album_id]);
+
+        // Phase 20: Daily Challenge Progress (Photo)
+        updateChallengeProgress(req.user.id, 'photo');
 
         res.status(201).json({ media: media.rows[0], cloudinary_url: result.secure_url });
     } catch (err) {

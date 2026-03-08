@@ -14,6 +14,8 @@ interface User {
     bio: string | null;
     profile_complete: boolean;
     love_xp: number;
+    points: number;
+    couple_level: number;
     current_mood?: string;
 }
 
@@ -134,10 +136,17 @@ export const useStore = create<StoreState>((set, get) => ({
             });
 
             const bond = bondRes.data.bond;
+
+            // Phase 20: Fetch Points/XP/Level
+            const ptsRes = await axios.get(`${API_URL}/gamification/stats/${data.user.id}`, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            const stats = ptsRes.data.stats;
+
             const pMood = bond?.user1_id === data.user.id ? bond?.user2_mood : bond?.user1_mood;
 
             set({
-                user: data.user,
+                user: { ...data.user, points: stats.amount, love_xp: stats.love_xp, couple_level: stats.couple_level },
                 isAuthenticated: true,
                 isLoading: false,
                 bond: bond,

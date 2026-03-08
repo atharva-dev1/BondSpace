@@ -133,6 +133,8 @@ app.post('/api/ai/plan-activity', aiGuruRoutes.planActivity);
 app.post('/api/gamification/checkin', gamificationRoutes.dailyCheckin);
 app.get('/api/gamification/stats/:user_id', gamificationRoutes.getStats);
 app.get('/api/gamification/unlockables/:user_id', gamificationRoutes.getUnlockables);
+app.get('/api/gamification/challenges', gamificationRoutes.getChallenges);
+app.get('/api/gamification/achievements', gamificationRoutes.getAchievements);
 
 // Love Letters
 app.post('/api/letters', letterRoutes.writeLetter);
@@ -153,7 +155,6 @@ app.post('/api/chat/anonymous/match', anonymousChatRoutes.matchUser);
 app.get('/api/chat/anonymous/:chat_id', anonymousChatRoutes.getAnonymousMessages);
 app.post('/api/chat/anonymous/message', anonymousChatRoutes.sendAnonymousMessage);
 app.post('/api/chat/anonymous/end', anonymousChatRoutes.endAnonymousChat);
-app.use('/api/anonymous', anonymousChatRoutes);
 app.use('/api/wall', wallRoutes);
 
 // ==========================================

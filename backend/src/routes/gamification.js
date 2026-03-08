@@ -80,7 +80,7 @@ const getUnlockables = async (req, res) => {
 // Helper: auto-unlock rewards based on XP
 async function checkAndUnlockRewards(userId, currentXP, res) {
     const eligible = await query(
-        `SELECT u.id FROM unlockables u
+        `SELECT u.id, u.name FROM unlockables u
      WHERE u.xp_required <= $1
      AND u.id NOT IN (SELECT unlockable_id FROM user_unlockables WHERE user_id=$2)`,
         [currentXP, userId]
@@ -94,4 +94,98 @@ async function checkAndUnlockRewards(userId, currentXP, res) {
     }
 }
 
-module.exports = { dailyCheckin, getStats, getUnlockables };
+// GET /api/gamification/challenges — Get daily challenges progress
+const getChallenges = async (req, res) => {
+    try {
+        const userId = req.user.id;
+        const today = new Date().toISOString().split('T')[0];
+
+        // Ensure user has challenges initialized for today
+        const existing = await query(
+            'SELECT 1 FROM user_challenges WHERE user_id=$1 AND reset_at=$2 LIMIT 1',
+            [userId, today]
+        );
+
+        if (existing.rows.length === 0) {
+            // Auto-assign 3 random challenges for today
+            const challenges = await query('SELECT id FROM daily_challenges ORDER BY RANDOM() LIMIT 3');
+            for (const ch of challenges.rows) {
+                await query(
+                    'INSERT INTO user_challenges (user_id, challenge_id, reset_at) VALUES ($1, $2, $3) ON CONFLICT DO NOTHING',
+                    [userId, ch.id, today]
+                );
+            }
+        }
+
+        const result = await query(
+            `SELECT uc.*, dc.title, dc.description, dc.task_type, dc.target_count, dc.points_reward, dc.xp_reward 
+             FROM user_challenges uc
+             JOIN daily_challenges dc ON dc.id = uc.challenge_id
+             WHERE uc.user_id=$1 AND uc.reset_at=$2`,
+            [userId, today]
+        );
+
+        res.json({ challenges: result.rows });
+    } catch (err) {
+        console.error('getChallenges error:', err);
+        res.status(500).json({ error: 'Failed to fetch challenges' });
+    }
+};
+
+// GET /api/gamification/achievements — Get user achievements
+const getAchievements = async (req, res) => {
+    try {
+        const userId = req.user.id;
+        const unlocked = await query(
+            `SELECT a.*, ua.unlocked_at FROM achievements a
+             JOIN user_achievements ua ON ua.achievement_id = a.id
+             WHERE ua.user_id=$1`,
+            [userId]
+        );
+
+        const all = await query('SELECT * FROM achievements ORDER BY requirement_value ASC');
+
+        res.json({
+            unlocked: unlocked.rows,
+            all: all.rows
+        });
+    } catch (err) {
+        res.status(500).json({ error: 'Failed to fetch achievements' });
+    }
+};
+
+// Internal utility to update challenge progress
+const updateChallengeProgress = async (userId, taskType, increment = 1) => {
+    try {
+        const today = new Date().toISOString().split('T')[0];
+
+        const challengeRes = await query(
+            `SELECT uc.*, dc.target_count, dc.points_reward, dc.xp_reward 
+             FROM user_challenges uc
+             JOIN daily_challenges dc ON dc.id = uc.challenge_id
+             WHERE uc.user_id=$1 AND uc.reset_at=$2 AND dc.task_type=$3 AND uc.is_completed=FALSE`,
+            [userId, today, taskType]
+        );
+
+        for (const uc of challengeRes.rows) {
+            const newCount = uc.current_count + increment;
+            const isCompleted = newCount >= uc.target_count;
+
+            await query(
+                `UPDATE user_challenges SET current_count=$1, is_completed=$2, completed_at=$3 WHERE id=$4`,
+                [newCount, isCompleted, isCompleted ? new Date() : null, uc.id]
+            );
+
+            if (isCompleted) {
+                await query(
+                    'UPDATE points SET amount=amount+$1, love_xp=love_xp+$2, updated_at=NOW() WHERE user_id=$3',
+                    [uc.points_reward, uc.xp_reward, userId]
+                );
+            }
+        }
+    } catch (err) {
+        console.error('updateChallengeProgress error:', err);
+    }
+};
+
+module.exports = { dailyCheckin, getStats, getUnlockables, getChallenges, getAchievements, updateChallengeProgress };

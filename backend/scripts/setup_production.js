@@ -57,6 +57,11 @@ async function setup() {
         const migrateTimeCapsule = require('./migrate_time_capsule');
         await migrateTimeCapsule(pool);
 
+        // 4.9. Run Gamification Migration
+        logger.info('Running gamification migration...');
+        const migrateGamification = require('./migrate_gamification');
+        await migrateGamification(pool);
+
         // 5. Seed Games
         logger.info('Seeding 20+ games...');
         const seedGames = require('./seed_games_20_logic');

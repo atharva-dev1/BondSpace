@@ -4,6 +4,7 @@ const { query } = require('../config/database');
 const redis = require('../config/redis');
 const { encryptMessage } = require('../services/encryptionService');
 const { v4: uuidv4 } = require('uuid');
+const { updateChallengeProgress } = require('../routes/gamification');
 
 let io;
 
@@ -95,6 +96,9 @@ const initializeSocket = (server) => {
                 // So we send back the server-generated message object + the plaintext ONLY to the connected volatile sockets.
                 const realtimeMsg = { ...savedMsg, message };
                 io.to(socket.coupleId).emit('receive_message', realtimeMsg);
+
+                // Phase 20: Daily Challenge Progress (Chat)
+                updateChallengeProgress(socket.userId, 'chat');
 
                 // Proactive AI Analysis: Count messages in Redis
                 const countKey = `msg_count:${socket.coupleId}`;
@@ -240,6 +244,9 @@ const initializeSocket = (server) => {
 
                 // Broadcast to partner including the element's DB ID
                 socket.to(socket.coupleId).emit('wall:element:added', result.rows[0]);
+
+                // Phase 20: Daily Challenge Progress (Wall)
+                updateChallengeProgress(socket.userId, 'wall');
             } catch (err) {
                 console.error('Socket wall:element:add error:', err);
             }

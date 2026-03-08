@@ -1,5 +1,6 @@
 const { query } = require('../config/database');
 const { v4: uuidv4 } = require('uuid');
+const { updateChallengeProgress } = require('./gamification');
 
 // GET /api/games — Get all available games
 const getAllGames = async (req, res) => {
@@ -151,6 +152,9 @@ const submitAction = async (req, res) => {
 
             for (let pid of uniquePlayers) {
                 try {
+                    // Update challenge progress (Game)
+                    updateChallengeProgress(pid, 'game');
+
                     const existing = await query('SELECT * FROM points WHERE user_id=$1', [pid]);
                     if (existing.rows.length === 0) {
                         await query(
