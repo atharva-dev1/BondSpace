@@ -8,6 +8,12 @@ import axios from 'axios';
 import { motion } from 'framer-motion';
 import { Heart, Loader2, Check, X, UserCircle } from 'lucide-react';
 
+// Required for Next.js static export (output: 'export')
+// Invite codes are resolved client-side at runtime
+export async function generateStaticParams() {
+    return [];
+}
+
 interface Inviter {
     id: string;
     name: string;

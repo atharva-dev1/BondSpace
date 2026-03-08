@@ -9,6 +9,12 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronLeft, Upload, Loader2, Image as ImageIcon, Trash2, Maximize2 } from 'lucide-react';
 import Link from 'next/link';
 
+// Required for Next.js static export (output: 'export')
+// Albums are loaded client-side at runtime — no pre-rendering needed
+export async function generateStaticParams() {
+    return [];
+}
+
 export default function AlbumDetailPage() {
     const { id } = useParams();
     const router = useRouter();
