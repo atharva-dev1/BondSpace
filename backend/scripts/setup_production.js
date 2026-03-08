@@ -67,6 +67,11 @@ async function setup() {
         const seedGames = require('./seed_games_20_logic');
         await seedGames(pool);
 
+        // 6. Seed Sticker Packs
+        logger.info('Seeding Sticker Packs...');
+        const seedTrueStickerPacks = require('./seed_true_sticker_packs_logic');
+        await seedTrueStickerPacks(pool);
+
         logger.info('🚀 Production Database Setup Complete!');
     } catch (err) {
         logger.error('Database setup failed:', err);
