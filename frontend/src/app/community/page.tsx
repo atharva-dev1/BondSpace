@@ -245,7 +245,7 @@ function CommunityChat({ community, onBack }: { community: any, onBack: () => vo
             </header>
 
             {/* Messages Area */}
-            <div className="flex-1 overflow-y-auto p-4 space-y-7 pb-80 no-scrollbar z-10 relative">
+            <div className="flex-1 overflow-y-auto p-4 space-y-7 pb-40 no-scrollbar z-10 relative">
                 {messages.length === 0 && (
                     <div className="text-center text-gray-500 text-sm py-10 glass rounded-2xl mx-10 border-white/5">
                         Welcome to {community.name}! Be the first to say hi 👋
@@ -285,7 +285,7 @@ function CommunityChat({ community, onBack }: { community: any, onBack: () => vo
             </div>
 
             {/* Input Form */}
-            <div className="absolute bottom-32 left-4 right-4 z-20">
+            <div className="absolute bottom-24 left-4 right-4 z-20">
                 <form onSubmit={handleSend} className="glass rounded-[32px] p-1.5 flex items-center gap-1 shadow-2xl border-indigo-500/20 bg-black/60 backdrop-blur-xl input-focus-glow">
                     <input
                         type="text"

@@ -294,7 +294,7 @@ export default function SecureChat() {
                 </div>
             </header>
 
-            <div className="flex-1 overflow-y-auto p-4 space-y-7 no-scrollbar pb-80 z-10 relative">
+            <div className="flex-1 overflow-y-auto p-4 space-y-7 no-scrollbar pb-40 z-10 relative">
                 <AnimatePresence initial={false}>
                     {messages.length === 0 && (
                         <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="flex flex-col items-center justify-center h-full gap-4 text-center py-20">
@@ -348,14 +348,19 @@ export default function SecureChat() {
             </div>
 
             {/* Input Bar */}
-            <div className="absolute bottom-32 left-0 right-0 px-4 z-20">
+            <div className="absolute bottom-24 left-0 right-0 px-4 z-20">
                 <AnimatePresence mode="wait">
                     {audioBlob && !isRecording ? (
-                        <motion.div key="preview" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, scale: 0.9 }} className="rounded-[32px] p-3 flex items-center gap-4 bg-zinc-900/90 backdrop-blur-2xl border border-accent/30 shadow-2xl animate-breathing-glow">
+                        <motion.div key="preview" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, scale: 0.9 }} className="rounded-[32px] p-3 flex items-center justify-between gap-3 bg-zinc-900/90 backdrop-blur-2xl border border-accent/30 shadow-2xl animate-breathing-glow">
                             <button onClick={togglePreviewPlay} className="w-10 h-10 rounded-2xl bg-accent-soft flex items-center justify-center text-accent hover:bg-accent/20 transition-all shrink-0">{previewPlaying ? <Pause size={18} /> : <Play size={18} fill="currentColor" />}</button>
-                            <div className="flex-1 flex flex-col gap-0.5"><span className="text-white text-xs font-bold uppercase tracking-widest opacity-80">Recording Ready</span><span className="text-gray-500 text-[10px]">Tap send to share your whisper</span></div>
-                            <button onClick={cancelRecording} className="text-gray-500 text-xs font-bold hover:text-white px-3 h-10 transition-colors">Discard</button>
-                            <button onClick={sendVoiceNote} className="px-6 h-10 rounded-2xl text-white text-sm font-black uppercase tracking-widest transition-all hover:scale-105 active:scale-95" style={{ background: 'linear-gradient(to right, var(--accent), var(--accent-secondary))', boxShadow: '0 4px 15px var(--accent-glow)' }}>Send</button>
+                            <div className="flex-1 flex flex-col gap-0.5 min-w-0">
+                                <span className="text-white text-[11px] font-black uppercase tracking-widest opacity-90 truncate">Recording Ready</span>
+                                <span className="text-gray-400 text-[9px] leading-tight font-medium line-clamp-2 pr-2">Tap send to share your whisper</span>
+                            </div>
+                            <div className="flex items-center gap-2 shrink-0">
+                                <button onClick={cancelRecording} className="text-gray-400 text-[11px] font-bold hover:text-white px-2 h-10 transition-colors uppercase tracking-wider">Discard</button>
+                                <button onClick={sendVoiceNote} className="px-5 h-10 rounded-2xl text-white text-xs font-black uppercase tracking-widest transition-all hover:scale-105 active:scale-95 shadow-lg" style={{ background: 'linear-gradient(to right, var(--accent), var(--accent-secondary))', boxShadow: '0 4px 15px var(--accent-glow)' }}>Send</button>
+                            </div>
                         </motion.div>
                     ) : isRecording ? (
                         <motion.div key="recording" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, scale: 0.9 }} className="rounded-[32px] p-3 flex items-center gap-4 bg-zinc-900/90 backdrop-blur-2xl border border-accent/50 shadow-2xl animate-breathing-glow ring-2 ring-accent/10">

@@ -136,7 +136,7 @@ export default function AnonymousChat({ chat_id, onEnd }: { chat_id: string, onE
             </header>
 
             {/* Messages */}
-            <div className="flex-1 overflow-y-auto p-4 space-y-7 no-scrollbar pb-80 z-10 relative">
+            <div className="flex-1 overflow-y-auto p-4 space-y-7 no-scrollbar pb-40 z-10 relative">
                 <div className="text-center py-4">
                     <div className="inline-flex items-center gap-2 bg-white/5 px-4 py-2 rounded-full border border-white/10 mb-2 backdrop-blur-md">
                         <Sparkles size={14} className="text-yellow-400" />
@@ -177,7 +177,7 @@ export default function AnonymousChat({ chat_id, onEnd }: { chat_id: string, onE
             </div>
 
             {/* Input */}
-            <div className="absolute bottom-32 left-4 right-4 z-20">
+            <div className="absolute bottom-24 left-4 right-4 z-20">
                 <form onSubmit={handleSend} className="glass rounded-[32px] p-1.5 flex items-center gap-1 shadow-2xl border-rose-500/20 bg-black/60 backdrop-blur-xl input-focus-glow">
                     <input
                         type="text"

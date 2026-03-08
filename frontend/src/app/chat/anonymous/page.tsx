@@ -28,7 +28,7 @@ export default function AnonymousLobbyPage() {
             setStatus('chatting');
         };
         socket.on('anonymous_match_found', handleMatch);
-        return () => socket.off('anonymous_match_found', handleMatch);
+        return () => { socket.off('anonymous_match_found', handleMatch); };
     }, [socket]);
 
     const startMatching = async () => {
