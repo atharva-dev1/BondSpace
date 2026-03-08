@@ -137,7 +137,7 @@ export default function ProfilePage() {
                     {loadingHealth && !healthScore ? (
                         <div className="py-8 flex flex-col items-center justify-center">
                             <HeartPulse size={40} className="text-rose-500 animate-pulse mb-3" />
-                            <p className="text-gray-400 text-sm">SambaNova AI is analyzing your bond...</p>
+                            <p className="text-gray-400 text-sm">Love Guru is analyzing your bond... 💖</p>
                         </div>
                     ) : healthScore ? (
                         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
@@ -168,7 +168,7 @@ export default function ProfilePage() {
 
                             {healthScore.ai_insight && (
                                 <div className="mt-6 p-4 rounded-2xl bg-white/5 border border-white/10 text-sm text-gray-300 leading-relaxed">
-                                    <p className="font-semibold text-rose-300 mb-1">AI Guru Insight:</p>
+                                    <p className="font-semibold text-rose-300 mb-1">Love Guru Insight ✨</p>
                                     {healthScore.ai_insight}
                                 </div>
                             )}
