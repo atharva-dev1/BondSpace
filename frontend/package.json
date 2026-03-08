@@ -10,7 +10,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "build:mobile": "cross-env MOBILE_BUILD=true node -e \"const fs=require('fs'); ['src/app/join/[code]/page.tsx', 'src/app/gallery/[id]/page.tsx'].forEach(f => { if(fs.existsSync(f)) { const d=fs.readFileSync(f, 'utf8'); fs.writeFileSync(f, d.replace(/\\/\\/ STATIC_EXPORT /g, '')); } })\" && next build",
+    "build:mobile": "cross-env MOBILE_BUILD=true node scripts/prepare-mobile-build.js && next build",
     "cap:sync": "npm run build:mobile && npx cap sync android",
     "cap:android": "npx cap open android",
     "cap:build-apk": "npm run build:mobile && npx cap sync android && cd android && .\\gradlew assembleDebug"
