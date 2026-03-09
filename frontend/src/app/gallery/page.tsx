@@ -94,7 +94,7 @@ export default function GalleryPage() {
                 <AnimatePresence>
                     <div className="grid grid-cols-2 gap-3">
                         {albums.map((album, i) => (
-                            <Link key={album.id} href={`/gallery/${album.id}`}>
+                            <Link key={album.id} href={`/gallery/view?id=${album.id}`}>
                                 <motion.div
                                     layout
                                     initial={{ opacity: 0, scale: 0.9 }}

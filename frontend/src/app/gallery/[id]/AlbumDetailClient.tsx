@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import { useStore } from '@/store/useStore';
 import { API_URL } from '@/lib/utils';
 import axios from 'axios';
@@ -10,8 +10,12 @@ import { ChevronLeft, Upload, Loader2, Image as ImageIcon } from 'lucide-react';
 import Link from 'next/link';
 
 export default function AlbumDetailClient() {
-    const { id } = useParams();
+    const params = useParams();
+    const searchParams = useSearchParams();
     const router = useRouter();
+
+    // Support both dynamic route [id] and query param ?id=
+    const id = params?.id || searchParams.get('id');
     const { token, bond, user, checkAuth } = useStore();
     const [album, setAlbum] = useState<any>(null);
     const [media, setMedia] = useState<any[]>([]);
