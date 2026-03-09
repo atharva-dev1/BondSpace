@@ -110,7 +110,7 @@ const initializeSocket = (server) => {
                 const countKey = `msg_count:${socket.coupleId}`;
                 const count = await redis.incr(countKey);
 
-                if (count % 20 === 0) {
+                if (count % 5 === 0) {
                     console.log(`🤖 AI Guru Triggered: Analysing tone for couple ${socket.coupleId}`);
                     const { analyseToneInternal } = require('../routes/aiGuru');
 

@@ -73,7 +73,7 @@ export default function SecureChat() {
                 const fetched = res.data.messages;
                 const decrypted = await Promise.all(
                     fetched.map(async (msg: Message) => {
-                        if (msg.message_type === 'voice' || msg.message_type === 'sticker') return msg;
+                        if (msg.message_type === 'voice') return msg;
                         try {
                             const plaintext = encryptionKey
                                 ? await decryptMessage(msg.message, encryptionKey)
@@ -119,7 +119,7 @@ export default function SecureChat() {
     useEffect(() => {
         if (!socket) return;
         const handleMsg = async (msg: Message) => {
-            if (msg.message_type === 'voice' || msg.message_type === 'sticker') {
+            if (msg.message_type === 'voice') {
                 setMessages(prev => [...prev, msg]);
                 return;
             }
