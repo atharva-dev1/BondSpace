@@ -8,8 +8,8 @@ import JoinClient from './JoinClient';
 
 // Next.js static export needs at least one path to generate a static HTML file
 // STATIC_EXPORT export async function generateStaticParams() {
-// STATIC_EXPORT     return [{ code: 'default' }];
-// STATIC_EXPORT }
+    // STATIC_EXPORT return [{ code: 'default' }];
+}
 
 export default function JoinPage() {
     return <JoinClient />;
