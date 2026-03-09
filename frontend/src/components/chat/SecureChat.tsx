@@ -190,8 +190,7 @@ export default function SecureChat() {
             let permissionGranted = true;
             if (typeof (window as any).Capacitor !== 'undefined') {
                 try {
-                    const { Microphone } = await import('@capacitor-community/media').catch(() => ({ Microphone: null }));
-                    // Use native permission request — fallback gracefully if plugin not available
+                    // Use native permission request
                     const perms = await (navigator as any).permissions?.query({ name: 'microphone' }).catch(() => null);
                     if (perms?.state === 'denied') {
                         permissionGranted = false;
