@@ -252,27 +252,28 @@ export default function SecureChat() {
         setPreviewPlaying(false);
 
         try {
-            // In Capacitor/Android WebView, FileReader sometimes silently fails on Blobs.
-            // Using a Promise wrapper and fallback to blob.text/arrayBuffer if needed.
-            const base64data = await new Promise<string>((resolve, reject) => {
-                const reader = new FileReader();
-                reader.onloadend = () => {
-                    if (reader.result) resolve(reader.result as string);
-                    else reject(new Error('Failed to read blob'));
-                };
-                reader.onerror = reject;
-                reader.readAsDataURL(audioBlob);
-            });
+            // Android WebView (Capacitor) FileReader bugs out on blobs often.
+            // A more robust way: use arrayBuffer and manual base64 conversion.
+            const arrayBuffer = await audioBlob.arrayBuffer();
+            const bytes = new Uint8Array(arrayBuffer);
+            let binary = '';
+            // Chunked conversion to avoid stack overflow on large buffers
+            const chunkSize = 8192;
+            for (let i = 0; i < bytes.length; i += chunkSize) {
+                binary += String.fromCharCode.apply(null, Array.from(bytes.subarray(i, i + chunkSize)));
+            }
+            const base64String = btoa(binary);
+            const media_url = `data:${audioBlob.type || 'audio/webm'};base64,${base64String}`;
 
             socket.emit('send_message', {
                 message: '🎤 Voice note',
                 message_type: 'voice',
-                media_url: base64data
+                media_url: media_url
             });
             setAudioBlob(null);
         } catch (err) {
             console.error('Error sending voice note:', err);
-            alert('Failed to send voice note. Please try again.');
+            alert('Failed to process voice note on this device. Try again.');
         }
     };
 
