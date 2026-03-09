@@ -35,6 +35,12 @@ const inMemoryClient = {
         const s = memStore.get(key);
         return (s instanceof Set) ? [...s] : [];
     },
+    incr: async (key) => {
+        const current = parseInt(memStore.get(key) || '0', 10);
+        const next = current + 1;
+        memStore.set(key, String(next));
+        return next;
+    },
     on: () => { },
     connect: async () => { },
 };
