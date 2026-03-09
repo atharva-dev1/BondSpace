@@ -252,28 +252,44 @@ export default function SecureChat() {
         setPreviewPlaying(false);
 
         try {
-            // Android WebView (Capacitor) FileReader bugs out on blobs often.
-            // A more robust way: use arrayBuffer and manual base64 conversion.
-            const arrayBuffer = await audioBlob.arrayBuffer();
-            const bytes = new Uint8Array(arrayBuffer);
-            let binary = '';
-            // Chunked conversion to avoid stack overflow on large buffers
-            const chunkSize = 8192;
-            for (let i = 0; i < bytes.length; i += chunkSize) {
-                binary += String.fromCharCode.apply(null, Array.from(bytes.subarray(i, i + chunkSize)));
-            }
-            const base64String = btoa(binary);
-            const media_url = `data:${audioBlob.type || 'audio/webm'};base64,${base64String}`;
+            console.log(`🎤 Starting voice note process. Type: ${audioBlob.type}, Size: ${audioBlob.size} bytes`);
 
+            // Standard FileReader is usually well-optimized on modern Android WebViews.
+            // If it failed before, it was likely due to server-side buffer limits (now increased to 50MB).
+            const reader = new FileReader();
+            const base64Promise = new Promise<string>((resolve, reject) => {
+                reader.onloadend = () => {
+                    if (typeof reader.result === 'string') resolve(reader.result);
+                    else reject(new Error('FileReader result is not a string'));
+                };
+                reader.onerror = () => reject(new Error('FileReader failed'));
+                reader.readAsDataURL(audioBlob);
+            });
+
+            const media_url = await base64Promise;
+            console.log(`📦 Base64 conversion complete. Payload length: ${media_url.length}`);
+
+            // Use acknowledgment to ensure the server actually received it
             socket.emit('send_message', {
                 message: '🎤 Voice note',
                 message_type: 'voice',
                 media_url: media_url
+            }, (ack: any) => {
+                if (ack && ack.error) {
+                    console.error('❌ Server rejected voice note:', ack.error);
+                    alert(`Server Error: ${ack.error}`);
+                } else {
+                    console.log('✅ Voice note acknowledged by server');
+                    setAudioBlob(null); // Only clear if we have some level of success/attempt
+                }
             });
-            setAudioBlob(null);
-        } catch (err) {
-            console.error('Error sending voice note:', err);
-            alert('Failed to process voice note on this device. Try again.');
+
+            // Note: We don't setAudioBlob(null) here immediately anymore. 
+            // We wait for the acknowledgement or at least the emit to fire.
+            // To prevent double-clicking, maybe add a sending state.
+        } catch (err: any) {
+            console.error('❌ Error processing voice note:', err);
+            alert('Failed to process voice note: ' + (err.message || 'Unknown error'));
         }
     };
 

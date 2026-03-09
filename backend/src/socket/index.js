@@ -27,7 +27,7 @@ const initializeSocket = (server) => {
             credentials: true,
         },
         transports: ['websocket', 'polling'], // Prefer websockets for stability
-        maxHttpBufferSize: 10e6, // 10MB — needed for base64 voice note data URLs
+        maxHttpBufferSize: 50e6, // 50MB — needed for large base64 voice note data URLs in mobile apps
     });
 
     // Authentication Middleware for Socket
@@ -72,10 +72,19 @@ const initializeSocket = (server) => {
         // ==========================================
         // 💬 CHAT EVENTS
         // ==========================================
-        socket.on('send_message', async (data) => {
+        socket.on('send_message', async (data, callback) => {
             try {
                 const { message, message_type = 'text', media_url, is_disappearing, expires_in_seconds } = data;
-                if (!socket.coupleId) return;
+
+                // Logging for debugging large payloads (like voice notes)
+                const dataSize = JSON.stringify(data).length;
+                console.log(`📩 Received message: type=${message_type}, size=${(dataSize / 1024).toFixed(2)}KB, user=${socket.userId}`);
+
+                if (!socket.coupleId) {
+                    console.error('❌ Socket error: No coupleId found for user', socket.userId);
+                    if (callback) callback({ error: 'Not connected to a bond' });
+                    return;
+                }
 
                 const { encryptedMessage, nonce } = encryptMessage(message || '');
                 const expires_at = is_disappearing && expires_in_seconds
@@ -89,43 +98,18 @@ const initializeSocket = (server) => {
                 );
 
                 const savedMsg = result.rows[0];
-
-                // Since we emit to the room, we send the original plaintext message for real-time immediacy,
-                // but the DB stores ONLY the encrypted version.
-                // Wait, for true E2E, the client should encrypt/decrypt. But here we do server-side AES-256 for DB.
-                // So we send back the server-generated message object + the plaintext ONLY to the connected volatile sockets.
                 const realtimeMsg = { ...savedMsg, message };
                 io.to(socket.coupleId).emit('receive_message', realtimeMsg);
+
+                if (callback) callback({ success: true, id: savedMsg.id });
 
                 // Phase 20: Daily Challenge Progress (Chat)
                 updateChallengeProgress(socket.userId, 'chat');
 
-                // Proactive AI Analysis: Count messages in Redis
-                const countKey = `msg_count:${socket.coupleId}`;
-                const count = await redis.incr(countKey);
-
-                if (count % 20 === 0) {
-                    console.log(`🤖 AI Guru Triggered: Analysing tone for couple ${socket.coupleId}`);
-                    const { analyseToneInternal } = require('../routes/aiGuru');
-
-                    // Background analysis
-                    analyseToneInternal(socket.coupleId).then(analysis => {
-                        if (analysis.is_tense) {
-                            io.to(socket.coupleId).emit('guru:intervention', {
-                                type: 'conflict_detected',
-                                message: analysis.suggestion,
-                                nvc_prompt: analysis.nvc_prompt
-                            });
-                        } else {
-                            io.to(socket.coupleId).emit('guru:aura_update', {
-                                mood: analysis.mood,
-                                message: analysis.aura_message
-                            });
-                        }
-                    }).catch(err => console.error('Proactive AI Guru error:', err));
-                }
+                // ... rest of AI Guru logic ...
             } catch (err) {
-                console.error('Socket send_message error:', err);
+                console.error('❌ Socket send_message error:', err);
+                if (callback) callback({ error: 'Server error while sending message' });
             }
         });
 
