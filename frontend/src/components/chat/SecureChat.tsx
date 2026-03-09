@@ -48,6 +48,7 @@ export default function SecureChat() {
     const [recordingTime, setRecordingTime] = useState(0);
     const [audioBlob, setAudioBlob] = useState<Blob | null>(null);
     const [playingId, setPlayingId] = useState<string | null>(null);
+    const [isSendingVoice, setIsSendingVoice] = useState(false);
     const mediaRecorderRef = useRef<MediaRecorder | null>(null);
     const chunksRef = useRef<Blob[]>([]);
     const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -186,25 +187,11 @@ export default function SecureChat() {
 
     const startRecording = async () => {
         try {
-            // On Android (Capacitor), we must request microphone permission at the native layer first
-            let permissionGranted = true;
-            if (typeof (window as any).Capacitor !== 'undefined') {
-                try {
-                    // Use native permission request
-                    const perms = await (navigator as any).permissions?.query({ name: 'microphone' }).catch(() => null);
-                    if (perms?.state === 'denied') {
-                        permissionGranted = false;
-                        alert('Microphone permission denied. Please enable it in your device Settings → Apps → BondSpace → Permissions.');
-                        return;
-                    }
-                } catch (e) {
-                    // Ignore — proceed with getUserMedia which will trigger the native dialog
-                }
-            }
-
+            // Simplified for Android/Capacitor: getUserMedia will trigger the native prompt automatically if Manifest is correct.
             const stream = await navigator.mediaDevices.getUserMedia({
                 audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false }
             });
+
             let mimeType = '';
             if (MediaRecorder.isTypeSupported('audio/mp4')) { mimeType = 'audio/mp4'; }
             else if (MediaRecorder.isTypeSupported('audio/webm;codecs=opus')) { mimeType = 'audio/webm;codecs=opus'; }
@@ -224,10 +211,11 @@ export default function SecureChat() {
             setRecordingTime(0);
             timerRef.current = setInterval(() => setRecordingTime(t => t + 1), 1000);
         } catch (err: any) {
+            console.error('🎤 Mic access error:', err);
             if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
-                alert('Microphone access denied.\n\nPlease go to:\nSettings → Apps → BondSpace → Permissions → Microphone → Allow');
+                alert('Microphone access denied. Please enable it in Settings -> Apps -> BondSpace -> Permissions.');
             } else {
-                alert('Could not access microphone. ' + (err.message || ''));
+                alert('Could not start recording: ' + (err.message || 'Unknown error'));
             }
         }
     };
@@ -247,47 +235,48 @@ export default function SecureChat() {
     };
 
     const sendVoiceNote = async () => {
-        if (!audioBlob || !socket) return;
+        if (!audioBlob || !socket || isSendingVoice) return;
         if (previewAudioRef.current) { previewAudioRef.current.pause(); previewAudioRef.current = null; }
         setPreviewPlaying(false);
+        setIsSendingVoice(true);
 
         try {
-            console.log(`🎤 Starting voice note process. Type: ${audioBlob.type}, Size: ${audioBlob.size} bytes`);
+            console.log(`🎤 Processing voice note: ${audioBlob.size} bytes`);
 
-            // Standard FileReader is usually well-optimized on modern Android WebViews.
-            // If it failed before, it was likely due to server-side buffer limits (now increased to 50MB).
-            const reader = new FileReader();
-            const base64Promise = new Promise<string>((resolve, reject) => {
-                reader.onloadend = () => {
-                    if (typeof reader.result === 'string') resolve(reader.result);
-                    else reject(new Error('FileReader result is not a string'));
-                };
-                reader.onerror = () => reject(new Error('FileReader failed'));
-                reader.readAsDataURL(audioBlob);
-            });
+            // Manual chunking for Base64 ensures stability in all WebViews and avoids FileReader issues
+            const arrayBuffer = await audioBlob.arrayBuffer();
+            const bytes = new Uint8Array(arrayBuffer);
+            let binary = '';
+            const chunkSize = 8192;
+            for (let i = 0; i < bytes.length; i += chunkSize) {
+                const chunk = bytes.subarray(i, i + chunkSize);
+                binary += String.fromCharCode.apply(null, Array.from(chunk));
+            }
+            const base64String = btoa(binary);
+            const media_url = `data:${audioBlob.type || 'audio/webm'};base64,${base64String}`;
 
-            const media_url = await base64Promise;
-            console.log(`📦 Base64 conversion complete. Payload length: ${media_url.length}`);
+            console.log(`📦 Sending voice note. Payload size: ${Math.round(media_url.length / 1024)}KB`);
 
-            // Use acknowledgment to ensure the server actually received it
             socket.emit('send_message', {
                 message: '🎤 Voice note',
                 message_type: 'voice',
                 media_url: media_url
             }, (ack: any) => {
+                setIsSendingVoice(false);
                 if (ack && ack.error) {
                     console.error('❌ Server rejected voice note:', ack.error);
                     alert(`Server Error: ${ack.error}`);
                 } else {
-                    console.log('✅ Voice note acknowledged by server');
-                    setAudioBlob(null); // Only clear if we have some level of success/attempt
+                    console.log('✅ Voice note sent and acknowledged');
+                    setAudioBlob(null);
                 }
             });
 
-            // Note: We don't setAudioBlob(null) here immediately anymore. 
-            // We wait for the acknowledgement or at least the emit to fire.
-            // To prevent double-clicking, maybe add a sending state.
+            // Auto-reset sending state if no ack after 15s to unblock UI
+            setTimeout(() => setIsSendingVoice(false), 15000);
+
         } catch (err: any) {
+            setIsSendingVoice(false);
             console.error('❌ Error processing voice note:', err);
             alert('Failed to process voice note: ' + (err.message || 'Unknown error'));
         }
@@ -540,7 +529,14 @@ export default function SecureChat() {
                             </div>
                             <div className="flex items-center gap-2 shrink-0">
                                 <button onClick={cancelRecording} className="text-gray-400 text-[11px] font-bold hover:text-white px-2 h-10 transition-colors uppercase tracking-wider">Discard</button>
-                                <button onClick={sendVoiceNote} className="px-5 h-10 rounded-2xl text-white text-xs font-black uppercase tracking-widest transition-all hover:scale-105 active:scale-95 shadow-lg" style={{ background: 'linear-gradient(to right, var(--accent), var(--accent-secondary))', boxShadow: '0 4px 15px var(--accent-glow)' }}>Send</button>
+                                <button
+                                    onClick={sendVoiceNote}
+                                    disabled={isSendingVoice}
+                                    className={`px-5 h-10 rounded-2xl text-white text-xs font-black uppercase tracking-widest transition-all hover:scale-105 active:scale-95 shadow-lg ${isSendingVoice ? 'opacity-70 cursor-not-allowed' : ''}`}
+                                    style={{ background: 'linear-gradient(to right, var(--accent), var(--accent-secondary))', boxShadow: '0 4px 15px var(--accent-glow)' }}
+                                >
+                                    {isSendingVoice ? 'Sending...' : 'Send'}
+                                </button>
                             </div>
                         </motion.div>
                     ) : isRecording ? (
