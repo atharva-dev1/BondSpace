@@ -62,7 +62,7 @@ const joinWithCode = async (req, res) => {
             return res.status(400).json({ error: "You can't join your own invite link 😅" });
         }
 
-        // Check neither user has an active bond
+        // Check neither user has an active (pending or bonded) bond
         const existing = await query(
             `SELECT id FROM couples WHERE (user1_id=$1 OR user2_id=$1 OR user1_id=$2 OR user2_id=$2) AND status IN ('pending','bonded')`,
             [inviterId, joiningUserId]
@@ -70,6 +70,12 @@ const joinWithCode = async (req, res) => {
         if (existing.rows.length > 0) {
             return res.status(409).json({ error: 'One of you is already bonded to someone else' });
         }
+
+        // Clean up stale broken/paused entries that might violate the UNIQUE(user1_id, user2_id) constraint
+        await query(
+            `DELETE FROM couples WHERE (user1_id=$1 AND user2_id=$2) OR (user1_id=$2 AND user2_id=$1)`,
+            [inviterId, joiningUserId]
+        );
 
         // Create the bond as 'bonded' directly (invite = implicit acceptance)
         const result = await query(
@@ -95,8 +101,8 @@ const joinWithCode = async (req, res) => {
             message: '💞 You are now bonded! Welcome to your private universe.'
         });
     } catch (err) {
-        console.error('Join invite error:', err);
-        res.status(500).json({ error: 'Failed to join bond' });
+        console.error('Join invite error:', err.message, err.stack);
+        res.status(500).json({ error: 'Failed to join bond', detail: err.message });
     }
 };
 
