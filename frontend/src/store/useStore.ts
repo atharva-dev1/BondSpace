@@ -46,6 +46,7 @@ interface StoreState {
     isLocked: boolean;
     encryptionKey: Uint8Array | null;
     partnerMood: string | null;
+    isCheckingAuth: boolean;
 
     // Actions
     login: (token: string, user: User) => Promise<void>;
@@ -67,6 +68,7 @@ export const useStore = create<StoreState>((set, get) => ({
     isAuthenticated: false,
     isLoading: false,
     isLocked: true, // Default to locked
+    isCheckingAuth: false,
     encryptionKey: null,
     partnerMood: null,
 
@@ -120,13 +122,15 @@ export const useStore = create<StoreState>((set, get) => ({
     },
 
     checkAuth: async () => {
-        const { token } = get();
+        const { token, isCheckingAuth } = get();
         if (!token) {
             set({ isLoading: false, isAuthenticated: false });
             return;
         }
 
-        set({ isLoading: true });
+        if (isCheckingAuth) return; // Prevent concurrent checks
+
+        set({ isLoading: true, isCheckingAuth: true });
         try {
             const { data } = await axios.get(`${API_URL}/auth/me`, {
                 headers: { Authorization: `Bearer ${token}` }
@@ -150,6 +154,7 @@ export const useStore = create<StoreState>((set, get) => ({
                 user: { ...data.user, points: stats.amount, love_xp: stats.love_xp, couple_level: stats.couple_level },
                 isAuthenticated: true,
                 isLoading: false,
+                isCheckingAuth: false,
                 bond: bond,
                 partnerMood: pMood || null
             });
@@ -157,7 +162,7 @@ export const useStore = create<StoreState>((set, get) => ({
         } catch (err) {
             console.error('Auth check failed:', err);
             localStorage.removeItem('bondspace_token');
-            set({ user: null, token: null, isAuthenticated: false, isLoading: false, bond: null, isLocked: true, encryptionKey: null });
+            set({ user: null, token: null, isAuthenticated: false, isLoading: false, isCheckingAuth: false, bond: null, isLocked: true, encryptionKey: null });
         }
     },
 

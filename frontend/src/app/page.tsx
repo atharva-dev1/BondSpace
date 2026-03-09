@@ -22,10 +22,7 @@ export default function Home() {
   const [isVerifying, setIsVerifying] = useState(false);
   const [unlockError, setUnlockError] = useState('');
 
-  // 1) Restore session on mount
-  useEffect(() => {
-    checkAuth();
-  }, []);
+  // 1) Restore session on mount - removed to rely on ThemeWrapper for deduplication
 
   // 2) After auth, handle any pending invite from /join/[code] redirect
   useEffect(() => {

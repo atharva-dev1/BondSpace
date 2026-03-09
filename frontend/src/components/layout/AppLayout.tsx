@@ -9,9 +9,6 @@ import BottomNav from './BottomNav';
 export default function AppLayout({ children }: { children: React.ReactNode }) {
     const { isAuthenticated, isLoading, bond, checkAuth } = useStore();
 
-    useEffect(() => {
-        checkAuth();
-    }, [checkAuth]);
 
     if (isLoading) {
         return (
