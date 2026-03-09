@@ -186,6 +186,23 @@ export default function SecureChat() {
 
     const startRecording = async () => {
         try {
+            // On Android (Capacitor), we must request microphone permission at the native layer first
+            let permissionGranted = true;
+            if (typeof (window as any).Capacitor !== 'undefined') {
+                try {
+                    const { Microphone } = await import('@capacitor-community/media').catch(() => ({ Microphone: null }));
+                    // Use native permission request — fallback gracefully if plugin not available
+                    const perms = await (navigator as any).permissions?.query({ name: 'microphone' }).catch(() => null);
+                    if (perms?.state === 'denied') {
+                        permissionGranted = false;
+                        alert('Microphone permission denied. Please enable it in your device Settings → Apps → BondSpace → Permissions.');
+                        return;
+                    }
+                } catch (e) {
+                    // Ignore — proceed with getUserMedia which will trigger the native dialog
+                }
+            }
+
             const stream = await navigator.mediaDevices.getUserMedia({
                 audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false }
             });
@@ -207,8 +224,12 @@ export default function SecureChat() {
             setIsRecording(true);
             setRecordingTime(0);
             timerRef.current = setInterval(() => setRecordingTime(t => t + 1), 1000);
-        } catch (err) {
-            alert('Microphone access denied.');
+        } catch (err: any) {
+            if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
+                alert('Microphone access denied.\n\nPlease go to:\nSettings → Apps → BondSpace → Permissions → Microphone → Allow');
+            } else {
+                alert('Could not access microphone. ' + (err.message || ''));
+            }
         }
     };
 
