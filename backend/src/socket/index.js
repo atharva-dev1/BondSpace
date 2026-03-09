@@ -106,7 +106,30 @@ const initializeSocket = (server) => {
                 // Phase 20: Daily Challenge Progress (Chat)
                 updateChallengeProgress(socket.userId, 'chat');
 
-                // ... rest of AI Guru logic ...
+                // Proactive AI Analysis: Count messages in Redis
+                const countKey = `msg_count:${socket.coupleId}`;
+                const count = await redis.incr(countKey);
+
+                if (count % 20 === 0) {
+                    console.log(`🤖 AI Guru Triggered: Analysing tone for couple ${socket.coupleId}`);
+                    const { analyseToneInternal } = require('../routes/aiGuru');
+
+                    // Background analysis
+                    analyseToneInternal(socket.coupleId).then(analysis => {
+                        if (analysis.is_tense) {
+                            io.to(socket.coupleId).emit('guru:intervention', {
+                                type: 'conflict_detected',
+                                message: analysis.suggestion,
+                                nvc_prompt: analysis.nvc_prompt
+                            });
+                        } else {
+                            io.to(socket.coupleId).emit('guru:aura_update', {
+                                mood: analysis.mood,
+                                message: analysis.aura_message
+                            });
+                        }
+                    }).catch(err => console.error('Proactive AI Guru error:', err));
+                }
             } catch (err) {
                 console.error('❌ Socket send_message error:', err);
                 if (callback) callback({ error: 'Server error while sending message' });

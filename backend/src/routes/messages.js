@@ -1,6 +1,45 @@
 const { query } = require('../config/database');
 const { v4: uuidv4 } = require('uuid');
 const { encryptMessage, decryptMessage } = require('../services/encryptionService');
+const cloudinary = require('../config/cloudinary');
+
+// Helper: upload buffer to Cloudinary
+const uploadToCloudinary = (buffer, options = {}) =>
+    new Promise((resolve, reject) => {
+        const uploadStream = cloudinary.uploader.upload_stream(
+            {
+                folder: 'bondspace/voice_notes',
+                resource_type: 'auto',
+                timeout: 60000,
+                ...options
+            },
+            (err, result) => {
+                if (err) return reject(err);
+                resolve(result);
+            }
+        );
+        uploadStream.end(buffer);
+    });
+
+// POST /api/messages/upload-voice
+const uploadVoice = async (req, res) => {
+    try {
+        if (!req.file) return res.status(400).json({ error: 'No audio file provided' });
+        const { couple_id } = req.body;
+
+        const result = await uploadToCloudinary(req.file.buffer, {
+            folder: `bondspace/${couple_id}/voice`
+        });
+
+        res.status(201).json({
+            media_url: result.secure_url,
+            public_id: result.public_id
+        });
+    } catch (err) {
+        console.error('Voice upload error:', err);
+        res.status(500).json({ error: 'Upload failed', details: err.message });
+    }
+};
 
 // GET /api/messages/:couple_id — Get chat history
 const getMessages = async (req, res) => {
@@ -110,4 +149,4 @@ const cleanDisappearingMessages = async () => {
     }
 };
 
-module.exports = { getMessages, sendMessage, pinMessage, getPinnedMessages, addReaction, cleanDisappearingMessages };
+module.exports = { getMessages, sendMessage, pinMessage, getPinnedMessages, addReaction, cleanDisappearingMessages, uploadVoice };

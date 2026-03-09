@@ -235,28 +235,34 @@ export default function SecureChat() {
     };
 
     const sendVoiceNote = async () => {
-        if (!audioBlob || !socket || isSendingVoice) return;
+        if (!audioBlob || !socket || isSendingVoice || !bond) return;
         if (previewAudioRef.current) { previewAudioRef.current.pause(); previewAudioRef.current = null; }
         setPreviewPlaying(false);
         setIsSendingVoice(true);
 
         try {
-            console.log(`🎤 Processing voice note: ${audioBlob.size} bytes`);
+            console.log(`🎤 Uploading voice note: ${audioBlob.size} bytes`);
 
-            // Manual chunking for Base64 ensures stability in all WebViews and avoids FileReader issues
-            const arrayBuffer = await audioBlob.arrayBuffer();
-            const bytes = new Uint8Array(arrayBuffer);
-            let binary = '';
-            const chunkSize = 8192;
-            for (let i = 0; i < bytes.length; i += chunkSize) {
-                const chunk = bytes.subarray(i, i + chunkSize);
-                binary += String.fromCharCode.apply(null, Array.from(chunk));
-            }
-            const base64String = btoa(binary);
-            const media_url = `data:${audioBlob.type || 'audio/webm'};base64,${base64String}`;
+            // 1. Upload to Cloudinary via HTTP (much more stable than Socket.io for binary)
+            const formData = new FormData();
+            formData.append('audio', audioBlob, 'voice_note.webm');
+            formData.append('couple_id', bond.id);
 
-            console.log(`📦 Sending voice note. Payload size: ${Math.round(media_url.length / 1024)}KB`);
+            const uploadRes = await axios.post(`${API_URL}/messages/upload-voice`, formData, {
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'multipart/form-data'
+                },
+                onUploadProgress: (progressEvent) => {
+                    const percentCompleted = Math.round((progressEvent.loaded * 100) / (progressEvent.total || audioBlob.size));
+                    console.log(`📡 Uploading: ${percentCompleted}%`);
+                }
+            });
 
+            const media_url = uploadRes.data.media_url;
+            console.log(`✅ Upload complete: ${media_url}`);
+
+            // 2. Send message via socket with the stable URL
             socket.emit('send_message', {
                 message: '🎤 Voice note',
                 message_type: 'voice',
@@ -264,21 +270,22 @@ export default function SecureChat() {
             }, (ack: any) => {
                 setIsSendingVoice(false);
                 if (ack && ack.error) {
-                    console.error('❌ Server rejected voice note:', ack.error);
+                    console.error('❌ Server rejected socket message:', ack.error);
                     alert(`Server Error: ${ack.error}`);
                 } else {
-                    console.log('✅ Voice note sent and acknowledged');
+                    console.log('🎉 Voice note sent successfully');
                     setAudioBlob(null);
                 }
             });
 
-            // Auto-reset sending state if no ack after 15s to unblock UI
-            setTimeout(() => setIsSendingVoice(false), 15000);
+            // Fallback reset for safety
+            setTimeout(() => setIsSendingVoice(prev => prev ? false : prev), 20000);
 
         } catch (err: any) {
             setIsSendingVoice(false);
-            console.error('❌ Error processing voice note:', err);
-            alert('Failed to process voice note: ' + (err.message || 'Unknown error'));
+            console.error('❌ Upload failed:', err);
+            const errorMsg = err.response?.data?.error || err.message || 'Unknown error';
+            alert(`Voice note upload failed: ${errorMsg}\n\nPlease check your internet connection and try again.`);
         }
     };
 

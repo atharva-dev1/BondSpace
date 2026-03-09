@@ -98,6 +98,7 @@ app.post('/api/bond/join/:code', inviteRoutes.joinWithCode);
 // Chat & Messages
 app.get('/api/messages/:couple_id', messageRoutes.getMessages);
 app.post('/api/messages', messageRoutes.sendMessage);
+app.post('/api/messages/upload-voice', galleryRoutes.upload.single('audio'), messageRoutes.uploadVoice);
 app.post('/api/messages/:id/pin', messageRoutes.pinMessage);
 app.get('/api/messages/:couple_id/pinned', messageRoutes.getPinnedMessages);
 app.post('/api/messages/:id/react', messageRoutes.addReaction);
