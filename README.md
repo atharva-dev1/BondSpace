@@ -329,6 +329,16 @@ npx cap sync android
 npx cap open android
 ```
 
+### Step 6: Production with Docker (Recommended)
+The project is containerized for "Next Level" production stability.
+```bash
+# Build and start all services (Backend, Frontend, PostgreSQL, Redis)
+docker-compose up --build -d
+
+# Check logs
+docker-compose logs -f
+```
+
 ---
 
 ## 💼 Developer & Project Structure
