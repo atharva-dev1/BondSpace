@@ -1,7 +1,7 @@
 import type { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
-    appId: 'com.bondspace.ap',
+    appId: 'com.bondspace.app',
     appName: 'BondSpace',
     webDir: 'out',
     bundledWebRuntime: false,
